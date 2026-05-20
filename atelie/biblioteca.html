@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ateliê — Materiais</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+.materiais-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.card-material{background:var(--branco);border:1px solid var(--borda);border-radius:8px;overflow:hidden;transition:box-shadow 0.2s,transform 0.2s;}
+.card-material:hover{box-shadow:0 4px 16px rgba(44,24,16,0.1);transform:translateY(-1px);}
+.card-material.alerta-estoque{border-color:#E8B0A0;}
+.mat-foto{width:100%;height:140px;background:var(--creme-escuro);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;}
+.mat-foto img{width:100%;height:100%;object-fit:cover;}
+.mat-foto-placeholder{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--texto-muted);}
+.mat-foto-placeholder span{font-size:2rem;}
+.mat-foto-placeholder small{font-size:11px;}
+.mat-foto-overlay{position:absolute;inset:0;background:rgba(44,24,16,0.4);display:none;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:500;}
+.mat-foto:hover .mat-foto-overlay{display:flex;}
+.mat-body{padding:0.9rem;}
+.mat-categoria{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:3px;}
+.mat-nome{font-family:var(--serif);font-size:1.1rem;font-weight:400;margin-bottom:6px;}
+.mat-preco{font-size:1rem;font-weight:600;color:var(--marrom);}
+.mat-unidade{font-size:11px;color:var(--texto-muted);}
+.mat-estoque{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:6px 10px;border-radius:4px;background:var(--creme);}
+.mat-estoque-label{font-size:11px;color:var(--texto-muted);}
+.mat-estoque-val{font-size:13px;font-weight:600;}
+.est-ok{color:var(--verde);}
+.est-baixo{color:var(--amarelo);}
+.est-critico{color:var(--vermelho);}
+.mat-alerta{font-size:10px;background:var(--vermelho-claro);color:var(--vermelho);border-radius:4px;padding:3px 8px;margin-top:5px;display:inline-block;}
+.mat-acoes{display:flex;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid var(--borda);}
+.estoque-rapido{display:flex;align-items:center;gap:4px;margin-top:8px;}
+.eq-btn{width:26px;height:26px;border:1px solid var(--borda);background:var(--creme);border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;}
+.eq-btn:hover{background:var(--marrom);color:var(--creme);border-color:var(--marrom);}
+.eq-input{width:55px;text-align:center;padding:4px 6px;border:1px solid var(--borda);border-radius:4px;font-size:12px;font-weight:500;background:var(--branco);}
+.eq-unidade{font-size:11px;color:var(--texto-muted);}
+.sobras-toggle{font-size:11px;font-weight:500;color:var(--azul);cursor:pointer;padding:4px 0;display:inline-block;margin-top:6px;border:none;background:none;font-family:var(--sans);}
+.sobras-panel{display:none;margin-top:8px;border-top:1px solid var(--borda);padding-top:8px;}
+.sobras-panel.aberto{display:block;}
+.sobra-item{background:var(--creme);border:1px solid var(--borda);border-radius:4px;padding:6px 10px;margin-bottom:4px;font-size:11px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sobra-dims{font-weight:500;color:var(--texto);}
+.sobra-origem{flex:1;color:var(--texto-muted);font-style:italic;}
+.add-sobra{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
+.add-sobra-linha1{display:grid;grid-template-columns:90px 90px auto;gap:5px;}
+.add-sobra-linha2{display:flex;gap:5px;}
+.add-sobra input{font-size:11px;padding:5px 7px;border:1px solid var(--borda);border-radius:4px;background:var(--branco);color:var(--texto);font-family:var(--sans);}
+.resumo-bar{display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.resumo-item{background:var(--branco);border:1px solid var(--borda);border-radius:6px;padding:10px 16px;flex:1;min-width:120px;}
+.resumo-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);display:block;margin-bottom:2px;}
+.resumo-val{font-size:1.3rem;font-family:var(--serif);font-weight:400;color:var(--marrom);}
+.resumo-item.alerta .resumo-val{color:var(--vermelho);}
+.filtro-btn.alerta{border-color:var(--vermelho);background:var(--vermelho-claro);color:var(--vermelho);}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">✂️ Ateliê</a>
+    <a href="clientes.html" class="nav-link">👗 <span>Clientes</span></a>
+    <a href="biblioteca.html" class="nav-link ativo">🧵 <span>Materiais</span></a>
+    <a href="estrutura.html" class="nav-link">✂️ <span>Modelos</span></a>
+    <a href="pedidos.html" class="nav-link">📦 <span>Pedidos</span></a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="sec-header">
+    <h2>Biblioteca de <em>Materiais</em></h2>
+    <button class="btn btn-primary" onclick="abrirModal(null)">+ Novo material</button>
+  </div>
+
+  <div class="resumo-bar" id="resumo-bar"></div>
+
+  <div class="filtros-wrap">
+    <button class="filtro-btn ativo" onclick="setFiltro('todos',this)">Todos</button>
+    <span id="filtros-categorias"></span>
+    <button class="filtro-btn alerta" onclick="setFiltro('baixo',this)" id="btn-baixo-estoque" style="display:none">⚠️ Estoque baixo</button>
+    <div class="busca-wrap" style="margin-left:auto">
+      <input type="text" id="busca" placeholder="🔍 Buscar material..." oninput="renderMateriais()"/>
+    </div>
+  </div>
+
+  <div class="materiais-grid" id="materiais-grid">
+    <div class="empty" style="grid-column:1/-1"><div class="empty-icon">🧵</div><p>Carregando...</p></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-material">
+  <div class="modal">
+    <h3 id="modal-titulo">Novo Material</h3>
+
+    <div class="form-group">
+      <label class="lbl">Foto do material <span class="opcional">(opcional)</span></label>
+      <div class="foto-upload" id="foto-upload-area" onclick="document.getElementById('foto-input-file').click()">
+        <div class="foto-placeholder" id="foto-placeholder"><span>📷</span><p>Clique para adicionar foto</p></div>
+        <img id="foto-preview-img" style="display:none"/>
+        <button type="button" class="foto-remover" id="foto-remover-btn" onclick="removerFoto(event)">×</button>
+        <input type="file" id="foto-input-file" class="foto-input" accept="image/*" onchange="onFotoChange(event)"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="lbl">Nome do material</label>
+        <input type="text" id="mat-nome" placeholder="Ex: Oxford branco, Elástico 3cm..."/>
+      </div>
+      <div class="form-group">
+        <label class="lbl">Categoria</label>
+        <select id="mat-categoria"></select>
+        <div style="display:flex;gap:5px;margin-top:5px">
+          <input type="text" id="nova-categoria-input" placeholder="Nova categoria..." style="font-size:12px;padding:5px 8px;" onkeydown="if(event.key==='Enter')adicionarCategoria()"/>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarCategoria()">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="lbl">Preço</label>
+        <input type="number" id="mat-preco" step="0.01" min="0" placeholder="0,00"/>
+      </div>
+      <div class="form-group">
+        <label class="lbl">Unidade</label>
+        <select id="mat-unidade">
+          <option value="metro">Metro</option>
+          <option value="unidade">Unidade</option>
+          <option value="rolo">Rolo</option>
+          <option value="pacote">Pacote</option>
+          <option value="kg">Kg</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="lbl">Qtd em estoque</label>
+        <input type="number" id="mat-estoque" step="0.5" min="0" placeholder="0"/>
+      </div>
+      <div class="form-group">
+        <label class="lbl">Qtd mínima <span class="opcional">(alerta)</span></label>
+        <input type="number" id="mat-minimo" step="0.5" min="0" placeholder="Ex: 2"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="lbl">Cor / descrição <span class="opcional">(opcional)</span></label>
+        <input type="text" id="mat-cor" placeholder="Ex: branco, estampado floral..."/>
+      </div>
+      <div class="form-group">
+        <label class="lbl">Fornecedor <span class="opcional">(opcional)</span></label>
+        <input type="text" id="mat-fornecedor" placeholder="Nome da loja ou fornecedor"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="lbl">Observações <span class="opcional">(opcional)</span></label>
+      <textarea id="mat-obs" rows="2" placeholder="Detalhes extras..."></textarea>
+    </div>
+
+    <div class="modal-acoes">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvarMaterial()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+let materiais = [];
+let categorias = [];
+let editId = null;
+let filtroAtual = 'todos';
+let fotoFile = null;
+let fotoAtualUrl = null;
+
+const CATS_PADRAO = ['Tecido','Aviamento','Forro','Outro'];
+const CAT_ICON_PADRAO = {Tecido:'🧵',Aviamento:'🪡',Forro:'📦',Outro:'📋'};
+function getCatIcon(cat) { return CAT_ICON_PADRAO[cat] || '🏷️'; }
+
+function fecharModal() { document.getElementById('modal-material').classList.remove('aberto'); }
+
+// ===== FOTO =====
+function onFotoChange(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  fotoFile = file;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('foto-preview-img').src = ev.target.result;
+    document.getElementById('foto-preview-img').style.display = 'block';
+    document.getElementById('foto-placeholder').style.display = 'none';
+    document.getElementById('foto-upload-area').classList.add('tem-foto');
+  };
+  reader.readAsDataURL(file);
+}
+function removerFoto(e) {
+  e.stopPropagation();
+  fotoFile = null; fotoAtualUrl = null;
+  document.getElementById('foto-preview-img').src = '';
+  document.getElementById('foto-preview-img').style.display = 'none';
+  document.getElementById('foto-placeholder').style.display = 'flex';
+  document.getElementById('foto-upload-area').classList.remove('tem-foto');
+  document.getElementById('foto-input-file').value = '';
+}
+
+// ===== CATEGORIAS =====
+async function carregarCategorias() {
+  var {data} = await db.from('categorias').select('*').eq('tipo','material').order('nome');
+  var nomes = (data||[]).map(function(c) { return c.nome; });
+  CATS_PADRAO.forEach(function(c) { if (!nomes.includes(c)) nomes.push(c); });
+  // ensure padrao first
+  var ordenadas = CATS_PADRAO.filter(function(c) { return nomes.includes(c); });
+  nomes.forEach(function(c) { if (!ordenadas.includes(c)) ordenadas.push(c); });
+  categorias = ordenadas;
+  renderSelectCategorias('Tecido');
+  renderFiltrosCategorias();
+}
+
+function renderSelectCategorias(valorAtual) {
+  var sel = document.getElementById('mat-categoria');
+  sel.innerHTML = categorias.map(function(c) {
+    return '<option value="' + c + '"' + (c === valorAtual ? ' selected' : '') + '>' + getCatIcon(c) + ' ' + c + '</option>';
+  }).join('');
+}
+
+async function adicionarCategoria() {
+  var input = document.getElementById('nova-categoria-input');
+  var nome = input.value.trim();
+  if (!nome) return;
+  if (categorias.find(function(c) { return c.toLowerCase() === nome.toLowerCase(); })) {
+    alert('Categoria já existe.'); return;
+  }
+  await db.from('categorias').insert({tipo:'material', nome: nome});
+  input.value = '';
+  await carregarCategorias();
+  renderSelectCategorias(nome);
+}
+
+function renderFiltrosCategorias() {
+  var wrap = document.getElementById('filtros-categorias');
+  wrap.innerHTML = categorias.map(function(c) {
+    return '<button class="filtro-btn' + (filtroAtual === c ? ' ativo' : '') + '" onclick="setFiltro(\'' + c + '\',this)">' + getCatIcon(c) + ' ' + c + '</button>';
+  }).join('');
+}
+
+// ===== FILTRO =====
+function setFiltro(val, btn) {
+  filtroAtual = val;
+  document.querySelectorAll('.filtro-btn').forEach(function(b) { b.classList.remove('ativo'); });
+  btn.classList.add('ativo');
+  renderMateriais();
+}
+
+// ===== MODAL =====
+function abrirModal(id) {
+  editId = id; fotoFile = null; fotoAtualUrl = null;
+  document.getElementById('modal-titulo').textContent = id ? 'Editar Material' : 'Novo Material';
+  removerFoto({stopPropagation:function(){}});
+  ['mat-nome','mat-cor','mat-fornecedor','mat-obs'].forEach(function(f) { document.getElementById(f).value = ''; });
+  ['mat-preco','mat-estoque','mat-minimo'].forEach(function(f) { document.getElementById(f).value = ''; });
+  document.getElementById('mat-unidade').value = 'metro';
+  renderSelectCategorias('Tecido');
+  if (id) {
+    var m = materiais.find(function(x) { return x.id === id; });
+    if (!m) return;
+    document.getElementById('mat-nome').value = m.nome || '';
+    renderSelectCategorias(m.categoria || 'Tecido');
+    document.getElementById('mat-preco').value = m.preco || '';
+    document.getElementById('mat-unidade').value = m.unidade || 'metro';
+    document.getElementById('mat-estoque').value = m.estoque || '';
+    document.getElementById('mat-minimo').value = m.minimo || '';
+    document.getElementById('mat-cor').value = m.cor || '';
+    document.getElementById('mat-fornecedor').value = m.fornecedor || '';
+    document.getElementById('mat-obs').value = m.obs || '';
+    if (m.foto) {
+      fotoAtualUrl = m.foto;
+      document.getElementById('foto-preview-img').src = m.foto;
+      document.getElementById('foto-preview-img').style.display = 'block';
+      document.getElementById('foto-placeholder').style.display = 'none';
+      document.getElementById('foto-upload-area').classList.add('tem-foto');
+    }
+  }
+  document.getElementById('modal-material').classList.add('aberto');
+}
+
+// ===== SALVAR =====
+async function salvarMaterial() {
+  var nome = document.getElementById('mat-nome').value.trim();
+  if (!nome) { alert('Informe o nome do material.'); return; }
+  var preco = parseFloat(document.getElementById('mat-preco').value) || 0;
+  if (!preco) { alert('Informe o preço.'); return; }
+  var btn = document.getElementById('btn-salvar');
+  setLoading(btn, true);
+  var fotoUrl = fotoAtualUrl;
+  if (fotoFile) {
+    fotoUrl = await uploadFoto(fotoFile, 'materiais');
+  }
+  var dados = {
+    nome: nome,
+    categoria: document.getElementById('mat-categoria').value,
+    preco: preco,
+    unidade: document.getElementById('mat-unidade').value,
+    estoque: parseFloat(document.getElementById('mat-estoque').value) || 0,
+    minimo: parseFloat(document.getElementById('mat-minimo').value) || 0,
+    cor: document.getElementById('mat-cor').value.trim(),
+    fornecedor: document.getElementById('mat-fornecedor').value.trim(),
+    obs: document.getElementById('mat-obs').value.trim(),
+    foto: fotoUrl || null,
+    atualizado_em: new Date().toISOString().split('T')[0]
+  };
+  try {
+    if (editId) {
+      var {error} = await db.from('materiais').update(dados).eq('id', editId);
+      if (error) throw error;
+      toast('Material atualizado!');
+    } else {
+      dados.sobras = [];
+      var {error} = await db.from('materiais').insert(dados);
+      if (error) throw error;
+      toast('Material salvo!');
+    }
+    fecharModal();
+    await carregarMateriais();
+  } catch(e) {
+    toast('Erro: ' + e.message, 'erro');
+  }
+  setLoading(btn, false);
+}
+
+// ===== ESTOQUE RAPIDO =====
+async function ajustarEstoque(id, delta) {
+  var m = materiais.find(function(x) { return x.id === id; });
+  if (!m) return;
+  var novo = Math.max(0, parseFloat(m.estoque || 0) + delta);
+  novo = parseFloat(novo.toFixed(2));
+  await db.from('materiais').update({estoque: novo}).eq('id', id);
+  m.estoque = novo;
+  renderMateriais();
+}
+
+async function setEstoque(id, val) {
+  var novo = Math.max(0, parseFloat(val) || 0);
+  novo = parseFloat(novo.toFixed(2));
+  await db.from('materiais').update({estoque: novo}).eq('id', id);
+  var m = materiais.find(function(x) { return x.id === id; });
+  if (m) m.estoque = novo;
+  atualizarResumo();
+}
+
+// ===== SOBRAS =====
+function toggleSobras(id) {
+  var panel = document.getElementById('sobras-panel-' + id);
+  panel.classList.toggle('aberto');
+  var m = materiais.find(function(x) { return x.id === id; });
+  var btn = document.getElementById('sobra-toggle-' + id);
+  var aberto = panel.classList.contains('aberto');
+  btn.textContent = (aberto ? '▲ ' : '📐 ') + 'Sobras (' + ((m&&m.sobras)||[]).length + ')';
+}
+
+async function addSobra(id) {
+  var larg = parseFloat(document.getElementById('sl-' + id).value) || 0;
+  var comp = parseFloat(document.getElementById('sc-' + id).value) || 0;
+  if (!larg || !comp) { alert('Informe largura e comprimento.'); return; }
+  var origem = document.getElementById('so-' + id).value.trim();
+  var obs = document.getElementById('sob-' + id).value.trim();
+  var m = materiais.find(function(x) { return x.id === id; });
+  if (!m) return;
+  var sobras = [...(m.sobras || []), {largura:larg, comprimento:comp, origem:origem, obs:obs}];
+  await db.from('materiais').update({sobras: sobras}).eq('id', id);
+  m.sobras = sobras;
+  renderMateriais();
+  setTimeout(function() {
+    var panel = document.getElementById('sobras-panel-' + id);
+    if (panel) { panel.classList.add('aberto'); }
+    var btn = document.getElementById('sobra-toggle-' + id);
+    if (btn) btn.textContent = '▲ Sobras (' + sobras.length + ')';
+  }, 30);
+}
+
+async function removerSobra(matId, idx) {
+  var m = materiais.find(function(x) { return x.id === matId; });
+  if (!m) return;
+  var sobras = (m.sobras || []).filter(function(_,i) { return i !== idx; });
+  await db.from('materiais').update({sobras: sobras}).eq('id', matId);
+  m.sobras = sobras;
+  renderMateriais();
+  setTimeout(function() {
+    var panel = document.getElementById('sobras-panel-' + matId);
+    if (panel) panel.classList.add('aberto');
+  }, 30);
+}
+
+// ===== REMOVER =====
+async function removerMaterial(id) {
+  if (!confirm('Remover este material?')) return;
+  var {error} = await db.from('materiais').delete().eq('id', id);
+  if (error) { toast('Erro: ' + error.message, 'erro'); return; }
+  toast('Material removido!');
+  await carregarMateriais();
+}
+
+// ===== CARREGAR =====
+async function carregarMateriais() {
+  var {data, error} = await db.from('materiais').select('*').order('nome');
+  if (error) { toast('Erro ao carregar', 'erro'); return; }
+  materiais = data || [];
+  renderMateriais();
+}
+
+// ===== RESUMO =====
+function atualizarResumo() {
+  var total = materiais.length;
+  var baixo = materiais.filter(function(m) { return m.minimo > 0 && m.estoque <= m.minimo; }).length;
+  var valorTotal = materiais.reduce(function(s, m) { return s + (m.estoque * m.preco); }, 0);
+  document.getElementById('resumo-bar').innerHTML =
+    '<div class="resumo-item"><span class="resumo-label">Total de materiais</span><span class="resumo-val">' + total + '</span></div>' +
+    '<div class="resumo-item"><span class="resumo-label">Valor em estoque</span><span class="resumo-val">R$ ' + valorTotal.toFixed(2).replace('.',',') + '</span></div>' +
+    (baixo > 0 ? '<div class="resumo-item alerta"><span class="resumo-label">⚠️ Estoque baixo</span><span class="resumo-val">' + baixo + ' material(is)</span></div>' : '');
+  var btnBaixo = document.getElementById('btn-baixo-estoque');
+  if (btnBaixo) btnBaixo.style.display = baixo > 0 ? '' : 'none';
+}
+
+// ===== RENDER =====
+function getEstoqueClasse(m) {
+  if (!m.minimo) return 'est-ok';
+  if (m.estoque <= 0) return 'est-critico';
+  if (m.estoque <= m.minimo) return 'est-baixo';
+  return 'est-ok';
+}
+
+function renderSobrasHTML(m) {
+  var sobras = m.sobras || [];
+  var html = '';
+  if (!sobras.length) {
+    html += '<div style="font-size:11px;color:var(--texto-muted);padding:4px 0">Nenhuma sobra registrada.</div>';
+  } else {
+    html += sobras.map(function(s, i) {
+      return '<div class="sobra-item">' +
+        '<span class="sobra-dims">📏 ' + s.largura + 'cm × ' + s.comprimento + 'cm</span>' +
+        '<span class="sobra-origem">' + (s.origem||'') + (s.obs ? ' · ' + s.obs : '') + '</span>' +
+        '<button onclick="removerSobra(' + m.id + ',' + i + ')" style="background:none;border:none;color:var(--texto-muted);cursor:pointer;font-size:14px;padding:0 2px">×</button>' +
+      '</div>';
+    }).join('');
+  }
+  html += '<div class="add-sobra">' +
+    '<div class="add-sobra-linha1">' +
+      '<input type="number" placeholder="Largura (cm)" id="sl-' + m.id + '" min="1" step="0.5"/>' +
+      '<input type="number" placeholder="Compr. (cm)" id="sc-' + m.id + '" min="1" step="0.5"/>' +
+      '<button onclick="addSobra(' + m.id + ')" style="font-size:11px;padding:5px 10px;background:var(--marrom);color:white;border:none;border-radius:4px;cursor:pointer">+ Add</button>' +
+    '</div>' +
+    '<div class="add-sobra-linha2">' +
+      '<input type="text" placeholder="Origem — ex: Pedido Saia Maria" id="so-' + m.id + '" style="flex:1"/>' +
+      '<input type="text" placeholder="Observação — ex: sem defeito" id="sob-' + m.id + '" style="flex:1"/>' +
+    '</div>' +
+  '</div>';
+  return html;
+}
+
+function renderMateriais() {
+  var grid = document.getElementById('materiais-grid');
+  var busca = document.getElementById('busca').value.toLowerCase();
+  var lista = materiais.filter(function(m) {
+    var matchFiltro = filtroAtual === 'todos' ? true
+      : filtroAtual === 'baixo' ? (m.minimo > 0 && m.estoque <= m.minimo)
+      : m.categoria === filtroAtual;
+    var matchBusca = !busca || m.nome.toLowerCase().includes(busca) || (m.cor||'').toLowerCase().includes(busca);
+    return matchFiltro && matchBusca;
+  });
+  lista.sort(function(a, b) {
+    var ac = a.minimo > 0 && a.estoque <= a.minimo ? 0 : 1;
+    var bc = b.minimo > 0 && b.estoque <= b.minimo ? 0 : 1;
+    if (ac !== bc) return ac - bc;
+    return a.nome.localeCompare(b.nome);
+  });
+  atualizarResumo();
+  if (!lista.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🧵</div><p>' +
+      (busca || filtroAtual !== 'todos' ? 'Nenhum material encontrado.' : 'Nenhum material cadastrado.') +
+      '</p>' + (!busca && filtroAtual === 'todos' ? '<button class="btn btn-primary" onclick="abrirModal(null)">+ Adicionar primeiro material</button>' : '') + '</div>';
+    return;
+  }
+  var unMap = {metro:'m',unidade:'un',rolo:'rl',pacote:'pc',kg:'kg'};
+  grid.innerHTML = lista.map(function(m) {
+    var estCls = getEstoqueClasse(m);
+    var temAlerta = m.minimo > 0 && m.estoque <= m.minimo;
+    var unSigla = unMap[m.unidade] || m.unidade;
+    return '<div class="card-material' + (temAlerta ? ' alerta-estoque' : '') + '">' +
+      '<div class="mat-foto" onclick="abrirModal(' + m.id + ')">' +
+        (m.foto ? '<img src="' + m.foto + '" alt="' + m.nome + '"/>' :
+          '<div class="mat-foto-placeholder"><span>' + getCatIcon(m.categoria) + '</span><small>sem foto</small></div>') +
+        '<div class="mat-foto-overlay">✏ Editar</div>' +
+      '</div>' +
+      '<div class="mat-body">' +
+        '<div class="mat-categoria">' + getCatIcon(m.categoria) + ' ' + (m.categoria||'') + '</div>' +
+        '<div class="mat-nome">' + m.nome + (m.cor ? ' <span style="font-size:11px;color:var(--texto-muted)">· ' + m.cor + '</span>' : '') + '</div>' +
+        '<div><span class="mat-preco">R$ ' + parseFloat(m.preco||0).toFixed(2).replace('.',',') + '</span> <span class="mat-unidade">/ ' + m.unidade + '</span></div>' +
+        '<div class="mat-estoque"><span class="mat-estoque-label">Estoque</span><span class="mat-estoque-val ' + estCls + '">' + (m.estoque||0) + ' ' + unSigla + '</span></div>' +
+        '<div class="estoque-rapido">' +
+          '<button class="eq-btn" onclick="ajustarEstoque(' + m.id + ',-0.5)">−</button>' +
+          '<input class="eq-input" type="number" value="' + (m.estoque||0) + '" step="0.5" min="0" onchange="setEstoque(' + m.id + ',this.value)" onclick="event.stopPropagation()"/>' +
+          '<button class="eq-btn" onclick="ajustarEstoque(' + m.id + ',0.5)">+</button>' +
+          '<span class="eq-unidade">' + unSigla + '</span>' +
+        '</div>' +
+        (temAlerta ? '<div class="mat-alerta">⚠️ Estoque baixo — mín: ' + m.minimo + ' ' + unSigla + '</div>' : '') +
+        (m.fornecedor ? '<div style="font-size:11px;color:var(--texto-muted);margin-top:4px">🏪 ' + m.fornecedor + '</div>' : '') +
+        '<div class="mat-acoes">' +
+          '<button class="btn btn-secondary btn-sm" onclick="abrirModal(' + m.id + ')">✏ Editar</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="removerMaterial(' + m.id + ')">Remover</button>' +
+        '</div>' +
+        '<button class="sobras-toggle" onclick="toggleSobras(' + m.id + ')" id="sobra-toggle-' + m.id + '">📐 Sobras (' + (m.sobras||[]).length + ')</button>' +
+        '<div class="sobras-panel" id="sobras-panel-' + m.id + '">' + renderSobrasHTML(m) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+carregarCategorias();
+carregarMateriais();
+</script>
+</body>
+</html>

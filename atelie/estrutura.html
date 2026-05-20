@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrutura de Corte</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rosa:#C4707A;--rosa-claro:#F5E8EA;
+  --creme:#FAF7F2;--creme-escuro:#F0EBE3;
+  --marrom:#5C4033;
+  --texto:#2C1810;--texto-muted:#9E8880;
+  --borda:#E0D5CF;--borda-forte:#C4B5AE;
+  --branco:#FDFCFB;
+  --verde:#4A7C59;--verde-claro:#E8F2EC;
+  --azul:#2A5F8A;--azul-claro:#E3EEF8;
+  --amarelo:#C4973A;--amarelo-claro:#FBF3E3;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',sans-serif;
+}
+body{font-family:var(--sans);background:var(--creme);color:var(--texto);min-height:100vh;font-size:14px;}
+.page{max-width:1100px;margin:0 auto;padding:1.5rem 1rem;}
+
+/* HEADER */
+.page-header{margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--borda);}
+.page-header h1{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--marrom);}
+.page-header h1 em{font-style:italic;color:var(--rosa);}
+.page-header p{font-size:12px;color:var(--texto-muted);margin-top:4px;}
+
+/* NOME DO MODELO */
+.modelo-nome-wrap{background:var(--branco);border:1px solid var(--borda);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;}
+.modelo-nome-wrap input{font-family:var(--serif);font-size:1.2rem;font-weight:300;border:none;background:none;color:var(--marrom);width:100%;outline:none;}
+.modelo-nome-wrap input::placeholder{color:var(--borda-forte);}
+
+/* LAYOUT PRINCIPAL */
+.main-layout{display:grid;grid-template-columns:380px 1fr;gap:1.5rem;align-items:start;}
+
+/* PAINEL ESQUERDO */
+.painel-esq{display:flex;flex-direction:column;gap:1rem;}
+
+/* TECIDOS */
+.card{background:var(--branco);border:1px solid var(--borda);border-radius:8px;overflow:hidden;}
+.card-header{padding:0.75rem 1rem;background:var(--creme-escuro);border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;}
+.card-header-titulo{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);}
+.card-body{padding:1rem;}
+
+.tecido-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;font-size:12px;margin-bottom:4px;background:var(--creme);border:1px solid var(--borda);}
+.tecido-cor{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.tecido-nome{flex:1;font-weight:500;}
+.tecido-preco{color:var(--texto-muted);}
+.tecido-larg{color:var(--texto-muted);font-size:11px;}
+.btn-x-sm{background:none;border:none;color:var(--texto-muted);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;}
+.btn-x-sm:hover{color:#8B2500;}
+
+.add-tecido{display:grid;grid-template-columns:1fr 80px 70px auto;gap:6px;margin-top:8px;}
+.add-tecido input{font-size:12px;padding:6px 8px;border:1px solid var(--borda);border-radius:4px;background:var(--creme);color:var(--texto);}
+.add-tecido input:focus{outline:none;border-color:var(--rosa);}
+
+/* FORM PECA */
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:0.85rem;}
+.lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);}
+.lbl-hint{font-size:10px;color:var(--texto-muted);margin-top:2px;}
+input,select{font-family:var(--sans);font-size:13px;padding:8px 10px;border:1px solid var(--borda);border-radius:4px;background:var(--creme);color:var(--texto);width:100%;transition:border-color 0.15s;}
+input:focus,select:focus{outline:none;border-color:var(--rosa);background:var(--branco);}
+input.erro{border-color:var(--rosa);background:var(--rosa-claro);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+
+/* FRANZIDO BOTOES */
+.franzido-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.fz-btn{padding:8px 4px;border:1.5px solid var(--borda);border-radius:6px;cursor:pointer;text-align:center;background:var(--branco);transition:all 0.15s;}
+.fz-btn:hover{border-color:var(--marrom);}
+.fz-btn.sel{border-color:var(--marrom);background:var(--marrom);color:white;}
+.fz-btn .fz-val{font-size:13px;font-weight:600;display:block;}
+.fz-btn .fz-desc{font-size:10px;opacity:0.7;display:block;margin-top:1px;}
+
+/* PREVIEW CALC */
+.preview{background:var(--azul-claro);border:1px solid #B0CCEA;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--azul);line-height:1.8;margin-top:0.5rem;display:none;}
+.preview.vis{display:block;}
+.preview strong{font-weight:600;}
+
+.faixas-detalhe{margin-top:6px;display:flex;flex-direction:column;gap:3px;}
+.faixa-linha{display:flex;align-items:center;gap:6px;font-size:11px;background:rgba(42,95,138,0.08);border-radius:3px;padding:3px 8px;}
+.faixa-num{font-weight:600;min-width:16px;}
+
+/* BOTOES */
+.btn{font-family:var(--sans);font-size:12px;font-weight:500;padding:8px 16px;border-radius:4px;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap;}
+.btn-primary{background:var(--marrom);color:white;}
+.btn-primary:hover{background:var(--texto);}
+.btn-secondary{background:var(--creme-escuro);color:var(--marrom);border:1px solid var(--borda-forte);}
+.btn-secondary:hover{background:var(--borda);}
+.btn-danger{background:none;color:var(--texto-muted);border:1px solid var(--borda);font-size:11px;padding:4px 10px;}
+.btn-danger:hover{background:#FCEAE8;color:#8B2500;border-color:#8B2500;}
+.btn-verde{background:var(--verde);color:white;}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.btn-add-peca{width:100%;padding:10px;background:var(--marrom);color:white;border:none;border-radius:4px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;margin-top:0.5rem;}
+.btn-add-peca:hover{background:var(--texto);}
+
+/* PAINEL DIREITO - LISTA */
+.painel-dir{}
+.lista-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+.lista-titulo{font-family:var(--serif);font-size:1.3rem;font-weight:300;color:var(--marrom);}
+
+.peca-card{background:var(--branco);border:1px solid var(--borda);border-radius:8px;margin-bottom:0.75rem;overflow:hidden;}
+.peca-card-header{padding:0.75rem 1rem;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--borda);}
+.peca-card-nome{font-family:var(--serif);font-size:1rem;font-weight:400;flex:1;}
+.peca-tecido-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:10px;background:var(--creme-escuro);color:var(--texto-muted);}
+.peca-card-body{padding:0.75rem 1rem;}
+.peca-dados{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:6px;margin-bottom:8px;}
+.dado{background:var(--creme);border-radius:4px;padding:5px 8px;}
+.dado-label{font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--texto-muted);display:block;margin-bottom:1px;}
+.dado-val{font-size:12px;font-weight:500;}
+.dado-verde{background:var(--verde-claro);}
+.dado-verde .dado-label{color:var(--verde);}
+.dado-verde .dado-val{color:var(--verde);}
+
+.faixas-lista-detalhe{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.faixa-item{display:flex;align-items:center;gap:8px;font-size:11px;padding:4px 8px;background:var(--creme);border-radius:3px;}
+.faixa-item .fi-num{font-weight:600;color:var(--marrom);min-width:20px;}
+.faixa-item .fi-comp{flex:1;}
+.faixa-item .fi-metros{color:var(--verde);font-weight:500;}
+
+.peca-acoes{display:flex;gap:6px;}
+
+/* RESUMO */
+.resumo-card{background:var(--marrom);color:var(--creme);border-radius:8px;padding:1.25rem;margin-top:1rem;}
+.resumo-titulo{font-family:var(--serif);font-size:1.2rem;font-weight:300;margin-bottom:0.75rem;opacity:0.8;}
+.resumo-linha{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.resumo-linha:last-child{border-bottom:none;font-weight:600;font-size:15px;padding-top:10px;margin-top:4px;}
+.resumo-por-tecido{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);}
+.resumo-tecido-linha{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;opacity:0.8;}
+
+
+/* FOTO DO MODELO */
+.foto-upload{width:100%;height:130px;border:2px dashed var(--borda);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--creme);transition:all 0.15s;position:relative;overflow:hidden;}
+.foto-upload:hover{border-color:var(--rosa);background:var(--rosa-claro);}
+.foto-upload.tem-foto{border-style:solid;border-color:var(--borda-forte);}
+.foto-upload img{width:100%;height:100%;object-fit:cover;border-radius:4px;}
+.foto-placeholder{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--texto-muted);}
+.foto-placeholder span{font-size:1.8rem;}
+.foto-placeholder p{font-size:11px;}
+.foto-input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.foto-remover{position:absolute;top:6px;right:6px;background:rgba(44,24,16,0.6);color:white;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px;display:none;align-items:center;justify-content:center;}
+.foto-upload.tem-foto .foto-remover{display:flex;}
+
+.empty-lista{text-align:center;padding:3rem 1rem;color:var(--texto-muted);border:1.5px dashed var(--borda);border-radius:8px;}
+.empty-lista p{font-size:13px;margin-top:8px;}
+
+.salvar-wrap{display:flex;justify-content:flex-end;margin-top:1rem;}
+
+@media(max-width:800px){
+  .main-layout{grid-template-columns:1fr;}
+  .franzido-grid{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+<nav class="nav" style="background:#5C4033;padding:0 1rem;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(44,24,16,0.15);">
+  <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0;width:100%">
+    <a href="index.html" style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#FAF7F2;font-style:italic;padding:0.9rem 1rem 0.9rem 0;border-right:1px solid rgba(255,255,255,0.15);margin-right:0.5rem;text-decoration:none;white-space:nowrap;">✂️ Ateliê</a>
+    <a href="clientes.html" style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:500;padding:0.9rem 0.85rem;text-decoration:none;">👗 Clientes</a>
+    <a href="biblioteca.html" style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:500;padding:0.9rem 0.85rem;text-decoration:none;">🧵 Materiais</a>
+    <a href="estrutura.html" style="color:white;font-size:12px;font-weight:500;padding:0.9rem 0.85rem;text-decoration:none;border-bottom:2px solid #C4707A;">✂️ Modelos</a>
+    <a href="pedidos.html" style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:500;padding:0.9rem 0.85rem;text-decoration:none;">📦 Pedidos</a>
+  </div>
+</nav>
+<div class="page">
+
+  <div class="page-header">
+    <h1>Estrutura de <em>Corte</em></h1>
+    <p>Adicione as pecas e o sistema calcula metros, faixas e custo automaticamente</p>
+  </div>
+
+  <!-- NOME DO MODELO -->
+  <div class="modelo-nome-wrap">
+    <span style="font-size:18px">✂️</span>
+    <input type="text" id="modelo-nome" placeholder="Nome do modelo / saia (ex: Saia branca com bordado ingles)"/>
+  </div>
+
+
+  <!-- FOTO + EXTRAS -->
+  <div style="display:grid;grid-template-columns:160px 1fr 1fr;gap:1rem;margin-bottom:1rem;align-items:start">
+    <div>
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:6px">Foto do modelo</div>
+      <div class="foto-upload" id="foto-upload-area" onclick="document.getElementById('foto-input-file').click()">
+        <div class="foto-placeholder" id="foto-placeholder"><span>📷</span><p>Adicionar foto</p></div>
+        <img id="foto-preview-img" style="display:none"/>
+        <button type="button" class="foto-remover" id="foto-remover-btn" onclick="removerFotoModelo(event)">×</button>
+        <input type="file" id="foto-input-file" class="foto-input" accept="image/*" onchange="onFotoModeloChange(event)"/>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:6px">Categoria</div>
+      <select id="modelo-categoria" style="margin-bottom:4px"></select>
+      <div style="display:flex;gap:5px;margin-bottom:0.75rem">
+        <input type="text" id="nova-cat-modelo" placeholder="Nova categoria..." style="font-size:12px;padding:5px 8px" onkeydown="if(event.key==='Enter')adicionarCatModelo()"/>
+        <button type="button" onclick="adicionarCatModelo()" style="font-size:11px;padding:5px 10px;border:1px solid var(--borda-forte);border-radius:4px;background:var(--creme-escuro);cursor:pointer;white-space:nowrap;color:var(--marrom)">+ Add</button>
+      </div>
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:6px">Perfil</div>
+      <select id="modelo-perfil">
+        <option value="feminino">🌸 Feminino</option>
+        <option value="masculino">👔 Masculino</option>
+        <option value="infantil">⭐ Infantil</option>
+        <option value="unissex">✨ Unissex</option>
+      </select>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:6px">Tempo estimado</div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:0.75rem">
+        <input type="number" id="modelo-tempo" min="0" step="0.5" placeholder="0" style="width:80px"/>
+        <span style="font-size:13px;color:var(--texto-muted)">horas</span>
+      </div>
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:6px">Obs. de corte</div>
+      <textarea id="modelo-obs" rows="2" placeholder="Cortar no viés, sentido da estampa..." style="font-family:var(--sans);font-size:12px;padding:8px 10px;border:1px solid var(--borda);border-radius:4px;background:var(--creme);color:var(--texto);width:100%;resize:vertical"></textarea>
+    </div>
+  </div>
+
+  <div class="main-layout">
+
+    <!-- PAINEL ESQUERDO -->
+    <div class="painel-esq">
+
+      <!-- TECIDOS -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-titulo">🧵 Tecidos desta saia</span>
+        </div>
+        <div class="card-body">
+          <!-- BIBLIOTECA -->
+          <div id="biblioteca-wrap" style="margin-bottom:8px;display:none">
+            <div style="font-size:11px;font-weight:500;color:var(--texto-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Tecidos salvos — clique para adicionar</div>
+            <div id="biblioteca-lista" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px"></div>
+          </div>
+          <div id="tecidos-lista"></div>
+          <div class="add-tecido">
+            <input type="text" id="tec-nome" placeholder="Nome do tecido"/>
+            <input type="number" id="tec-preco" placeholder="R$/m" min="0" step="0.01"/>
+            <input type="number" id="tec-larg" placeholder="Larg.cm" value="150" min="50" step="10"/>
+            <button class="btn btn-primary btn-sm" onclick="addTecido()">+</button>
+          </div>
+          <div style="font-size:10px;color:var(--texto-muted);margin-top:6px">Ex: Oxfordine branco · R$ 9,85/m · 150cm</div>
+        </div>
+      </div>
+
+      <!-- FORM PECA -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-titulo">➕ Adicionar peca</span>
+        </div>
+        <div class="card-body">
+
+          <div class="form-group">
+            <label class="lbl">Nome da peca</label>
+            <input type="text" id="p-nome" placeholder="Ex: Cos, Saia base, Babado, Forro..."/>
+          </div>
+
+          <div class="form-group">
+            <label class="lbl">Tecido</label>
+            <select id="p-tecido" onchange="recalc()">
+              <option value="">Selecione o tecido...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="lbl">Altura visivel (cm)</label>
+              <input type="number" id="p-altura-vis" placeholder="Ex: 17" min="1" step="0.5" oninput="recalc()"/>
+              <span class="lbl-hint">O que aparece na saia pronta</span>
+            </div>
+            <div class="form-group">
+              <label class="lbl">Margem costura (cm)</label>
+              <input type="number" id="p-margem" placeholder="1.5" value="1.5" min="0" step="0.5" oninput="recalc()"/>
+              <span class="lbl-hint">Por lado — padrao 1,5cm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Altura de corte total</label>
+            <input type="text" id="p-altura-total" readonly placeholder="Calculado automaticamente" style="background:var(--verde-claro);color:var(--verde);font-weight:500;border-color:var(--verde)"/>
+            <span class="lbl-hint">Altura visivel + (margem × 2)</span>
+          </div>
+          <div class="form-group">
+            <label class="lbl">Posicao <span style="font-weight:400;text-transform:none;font-size:10px">(opcional)</span></label>
+            <input type="text" id="p-posicao" placeholder="Ex: 21cm do cos"/>
+          </div>
+
+          <div class="form-group">
+            <label class="lbl">Franzido</label>
+            <div class="franzido-grid" id="franzido-grid">
+              <div class="fz-btn sel" onclick="selFz('1')" id="fz-1"><span class="fz-val">1:1</span><span class="fz-desc">Sem franzido</span></div>
+              <div class="fz-btn" onclick="selFz('1.5')" id="fz-1.5"><span class="fz-val">1,5:1</span><span class="fz-desc">Leve</span></div>
+              <div class="fz-btn" onclick="selFz('2')" id="fz-2"><span class="fz-val">2:1</span><span class="fz-desc">Medio</span></div>
+              <div class="fz-btn" onclick="selFz('2.5')" id="fz-2.5"><span class="fz-val">2,5:1</span><span class="fz-desc">Cheio</span></div>
+              <div class="fz-btn" onclick="selFz('3')" id="fz-3"><span class="fz-val">3:1</span><span class="fz-desc">Muito cheio</span></div>
+              <div class="fz-btn" onclick="selFz('c')" id="fz-c"><span class="fz-val">?:1</span><span class="fz-desc">Personalizado</span></div>
+            </div>
+            <div id="fz-custom-wrap" style="display:none;margin-top:6px">
+              <input type="number" id="fz-custom" placeholder="Ex: 1.8" min="1" step="0.1" oninput="recalc()"/>
+            </div>
+          </div>
+
+          <!-- FAIXAS -->
+          <div class="form-group" id="faixas-wrap" style="display:none">
+            <label class="lbl">Numero de faixas</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="number" id="p-faixas" min="1" step="1" style="width:100px" oninput="atualizarPreviewFaixas()" onchange="atualizarPreviewFaixas()"/>
+              <span id="faixas-sugestao" style="font-size:11px;color:var(--texto-muted)"></span>
+            </div>
+            <span class="lbl-hint">Sugestao calculada automaticamente — altere se precisar</span>
+          </div>
+
+          <!-- PREVIEW -->
+          <div class="preview" id="preview"></div>
+
+          <button class="btn-add-peca" onclick="addPeca()">+ Adicionar esta peca</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAINEL DIREITO -->
+    <div class="painel-dir">
+      <div class="lista-header">
+        <div class="lista-titulo" id="lista-titulo">Pecas adicionadas</div>
+        <span id="lista-count" style="font-size:12px;color:var(--texto-muted)"></span>
+      </div>
+
+      <div id="lista-pecas">
+        <div class="empty-lista">
+          <div style="font-size:2rem;opacity:0.3">✂️</div>
+          <p>Nenhuma peca adicionada ainda.<br>Preencha o formulario ao lado e clique em adicionar.</p>
+        </div>
+      </div>
+
+      <div id="resumo-wrap" style="display:none">
+        <div class="resumo-card" id="resumo"></div>
+              <!-- AVIAMENTOS -->
+      <div class="card" style="margin-top:1rem">
+        <div class="card-header">
+          <span class="card-header-titulo">🎀 Aviamentos</span>
+          <button class="btn btn-secondary btn-sm" onclick="addAviamento()">+ Adicionar</button>
+        </div>
+        <div class="card-body" id="aviamentos-body">
+          <div id="aviamentos-lista">
+            <div style="font-size:12px;color:var(--texto-muted);text-align:center;padding:1rem">
+              Nenhum aviamento adicionado ainda.
+            </div>
+          </div>
+
+          <!-- BIBLIOTECA DE AVIAMENTOS -->
+          <div style="margin-top:0.75rem">
+            <div style="font-size:11px;font-weight:500;color:var(--texto-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Aviamentos comuns — clique para adicionar</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              <button onclick="addAviamentoPadrao('Renda')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🪡 Renda</button>
+              <button onclick="addAviamentoPadrao('Bordado ingles')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🌸 Bordado ingles</button>
+              <button onclick="addAviamentoPadrao('Fita')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🎀 Fita</button>
+              <button onclick="addAviamentoPadrao('Elastico')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🧶 Elastico</button>
+              <button onclick="addAviamentoPadrao('Corda')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🪢 Corda</button>
+              <button onclick="addAviamentoPadrao('Fio')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">🧵 Fio</button>
+              <button onclick="addAviamentoPadrao('Ponteira')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer">📌 Ponteira</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="salvar-wrap">
+          <button class="btn btn-verde" id="btn-salvar-estrutura" onclick="salvarEstrutura()">✓ Salvar estrutura de corte</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== ESTADO =====
+var tecidos = [];
+var pecas = [];
+var fzAtual = '1';
+var editIdx = -1; // index da peca sendo editada (-1 = nova peca)
+var faixasManual = false; // true quando usuario editou manualmente
+var tecCores = ['#C4707A','#4A7C59','#2A5F8A','#C4973A','#8D6E63','#7B68EE','#20B2AA','#DC143C'];
+var biblioteca = [];
+async function carregarBiblioteca() {
+  var {data} = await db.from('materiais').select('id,nome,preco,unidade,categoria,estoque').order('nome');
+  biblioteca = data || [];
+  renderBiblioteca();
+  renderBibAviamentos();
+}
+
+// ===== TECIDOS =====
+function addTecido() {
+  var nome = document.getElementById('tec-nome').value.trim();
+  var preco = parseFloat(document.getElementById('tec-preco').value) || 0;
+  var larg = parseFloat(document.getElementById('tec-larg').value) || 150;
+  if (!nome) { alert('Informe o nome do tecido.'); return; }
+  if (!preco) { alert('Informe o preco do tecido.'); return; }
+  var newTec = {id: Date.now(), nome: nome, preco: preco, largura: larg, cor: tecCores[tecidos.length % tecCores.length]};
+  tecidos.push(newTec);
+  // salvar na biblioteca se nao existe
+  if (!biblioteca.find(function(b) { return b.nome.toLowerCase() === nome.toLowerCase(); })) {
+    biblioteca.push({id: Date.now()+1, nome: nome, preco: preco, largura: larg});
+    await db.from('materiais').upsert(biblioteca);
+    renderBiblioteca();
+  }
+  document.getElementById('tec-nome').value = '';
+  document.getElementById('tec-preco').value = '';
+  document.getElementById('tec-larg').value = '150';
+  renderTecidos();
+  recalc();
+}
+
+function addTecidoBiblioteca(id) {
+  var t = biblioteca.find(function(b) { return b.id === id; });
+  if (!t) return;
+  if (tecidos.find(function(x) { return x.nome === t.nome; })) { alert('Este tecido ja foi adicionado.'); return; }
+  tecidos.push({id: Date.now(), nome: t.nome, preco: t.preco, largura: t.largura, cor: tecCores[tecidos.length % tecCores.length]});
+  renderTecidos();
+  recalc();
+}
+
+function renderBiblioteca() {
+  var wrap = document.getElementById('biblioteca-wrap');
+  var div = document.getElementById('biblioteca-lista');
+  if (!biblioteca.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  div.innerHTML = biblioteca.map(function(t) {
+    return '<button onclick="addTecidoBiblioteca(' + t.id + ')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer;color:var(--texto)">' +
+      t.nome + ' · R$ ' + t.preco.toFixed(2) + '/m' +
+    '</button>';
+  }).join('');
+}
+
+function removerTecido(id) {
+  tecidos = tecidos.filter(function(t) { return t.id !== id; });
+  renderTecidos();
+  recalc();
+}
+
+function renderTecidos() {
+  var div = document.getElementById('tecidos-lista');
+  var sel = document.getElementById('p-tecido');
+  if (!tecidos.length) {
+    div.innerHTML = '<div style="font-size:12px;color:var(--texto-muted);text-align:center;padding:8px">Adicione pelo menos um tecido</div>';
+    sel.innerHTML = '<option value="">Selecione o tecido...</option>';
+    return;
+  }
+  div.innerHTML = tecidos.map(function(t) {
+    return '<div class="tecido-item">' +
+      '<div class="tecido-cor" style="background:' + t.cor + '"></div>' +
+      '<span class="tecido-nome">' + t.nome + '</span>' +
+      '<span class="tecido-preco">R$ ' + t.preco.toFixed(2) + '/m</span>' +
+      '<span class="tecido-larg">· ' + t.largura + 'cm</span>' +
+      '<button class="btn-x-sm" onclick="removerTecido(' + t.id + ')">×</button>' +
+    '</div>';
+  }).join('');
+  var tecAtual = sel.value;
+  sel.innerHTML = '<option value="">Selecione o tecido...</option>' +
+    tecidos.map(function(t) {
+      return '<option value="' + t.id + '"' + (t.id == tecAtual ? ' selected' : '') + '>' + t.nome + ' (R$ ' + t.preco.toFixed(2) + '/m)</option>';
+    }).join('');
+}
+
+// ===== FRANZIDO =====
+function selFz(val) {
+  fzAtual = val;
+  // reset faixas para sugestao automatica quando franzido mudar
+  var fi = document.getElementById('p-faixas');
+  if (fi) { fi.value = ''; faixasManual = false; }
+  document.querySelectorAll('.fz-btn').forEach(function(b) { b.classList.remove('sel'); });
+  document.getElementById('fz-' + val).classList.add('sel');
+  document.getElementById('fz-custom-wrap').style.display = val === 'c' ? 'block' : 'none';
+  recalc();
+}
+
+function getFz() {
+  if (fzAtual === 'c') return parseFloat(document.getElementById('fz-custom').value) || 1;
+  return parseFloat(fzAtual) || 1;
+}
+
+// ===== CALCULO FAIXAS =====
+function calcFaixas(comprimento, largura) {
+  var faixas = [];
+  var resto = comprimento;
+  while (resto > 0) {
+    if (resto >= largura) {
+      faixas.push(largura);
+      resto = parseFloat((resto - largura).toFixed(1));
+    } else {
+      faixas.push(parseFloat(resto.toFixed(1)));
+      resto = 0;
+    }
+  }
+  return faixas;
+}
+
+function getCompAnterior() {
+  if (!pecas.length) return 150; // largura padrao do cos
+  return pecas[pecas.length - 1].comprimento;
+}
+
+// ===== RECALC PREVIEW =====
+function recalc() {
+  var altVis = parseFloat(document.getElementById('p-altura-vis').value) || 0;
+  var margem = parseFloat(document.getElementById('p-margem').value) || 0;
+  var altura = parseFloat((altVis + margem * 2).toFixed(1));
+  var fz = getFz();
+  var preview = document.getElementById('preview');
+
+  // update altura total field
+  var totalField = document.getElementById('p-altura-total');
+  if (altVis > 0) {
+    totalField.value = altura + 'cm (visivel ' + altVis + 'cm + ' + (margem*2) + 'cm margem)';
+  } else {
+    totalField.value = '';
+  }
+
+  if (!altVis) { preview.classList.remove('vis'); return; }
+
+  var compAnterior = getCompAnterior();
+  var compNecessario = parseFloat((compAnterior * fz).toFixed(1));
+
+  var tecId = parseInt(document.getElementById('p-tecido').value) || 0;
+  var tec = tecidos.find(function(t) { return t.id === tecId; });
+  var largura = tec ? tec.largura : 150;
+  var preco = tec ? tec.preco : 0;
+
+  // calcular faixas sugeridas
+  var faixasSugeridas = Math.ceil(compNecessario / largura);
+
+  // mostrar campo de faixas
+  var faixasWrap = document.getElementById('faixas-wrap');
+  var faixasInput = document.getElementById('p-faixas');
+  var faixasSug = document.getElementById('faixas-sugestao');
+  faixasWrap.style.display = 'block';
+  // mostrar sugestao mas NUNCA sobrescrever se usuario editou
+  faixasSug.textContent = 'Sugerido: ' + faixasSugeridas + ' faixa(s)';
+  if (!faixasManual) {
+    faixasInput.value = faixasSugeridas;
+  }
+
+  // SEMPRE usar o valor atual do campo - seja sugerido ou editado pelo usuario
+  var numFaixas = parseInt(faixasInput.value) || faixasSugeridas;
+
+  // calcular comprimento de cada faixa
+  var faixasDetalhe = calcFaixasComNum(compNecessario, largura, numFaixas);
+  var metrosTecido = parseFloat((numFaixas * (altura / 100)).toFixed(3));
+  var custo = parseFloat((metrosTecido * preco).toFixed(2));
+
+  var html = '';
+  if (fz !== 1) {
+    html += 'Peca anterior: <strong>' + compAnterior + 'cm</strong> × <strong>' + fz + ':1</strong> = <strong>' + compNecessario + 'cm</strong><br>';
+  }
+  html += '<strong>' + numFaixas + ' faixa(s)</strong> de <strong>' + altura + 'cm</strong> de altura<br>';
+  html += '<div class="faixas-detalhe">';
+  faixasDetalhe.forEach(function(f, i) {
+    var metrosFaixa = parseFloat((altura / 100).toFixed(3));
+    html += '<div class="faixa-linha"><span class="faixa-num">' + (i+1) + 'a</span><span>' + f + 'cm de comprimento</span><span style="margin-left:auto;font-weight:600">' + metrosFaixa + 'm de tecido</span></div>';
+  });
+  html += '</div>';
+  html += '<br>Total: <strong>' + metrosTecido + 'm de tecido</strong>';
+  if (preco > 0) html += ' · <strong>R$ ' + custo.toFixed(2) + '</strong>';
+
+  preview.innerHTML = html;
+  preview.classList.add('vis');
+
+  preview.dataset.comp = compNecessario;
+  preview.dataset.faixas = JSON.stringify(faixasDetalhe);
+  preview.dataset.metros = metrosTecido;
+  preview.dataset.custo = custo;
+}
+
+function atualizarPreviewFaixas() {
+  // marcar como editado manualmente
+  var fi = document.getElementById('p-faixas');
+  faixasManual = true;
+  recalc();
+}
+
+function calcFaixasComNum(comprimento, largura, numFaixas) {
+  var faixas = [];
+  var resto = parseFloat(comprimento.toFixed(1));
+  
+  // se pediu mais faixas do que o necessario, redistribuir igualmente
+  var faixasNecessarias = Math.ceil(comprimento / largura);
+  if (numFaixas > faixasNecessarias) {
+    // distribuir o comprimento igualmente entre as faixas pedidas
+    var porFaixa = parseFloat((comprimento / numFaixas).toFixed(1));
+    for (var i = 0; i < numFaixas; i++) {
+      faixas.push(porFaixa);
+    }
+    return faixas;
+  }
+
+  // distribuicao normal - faixas completas + resto
+  for (var i = 0; i < numFaixas; i++) {
+    if (i === numFaixas - 1) {
+      // ultima faixa pega o resto
+      if (resto > 0) faixas.push(parseFloat(resto.toFixed(1)));
+    } else {
+      var f = Math.min(largura, resto);
+      faixas.push(parseFloat(f.toFixed(1)));
+      resto = parseFloat((resto - f).toFixed(1));
+    }
+  }
+  return faixas;
+}
+
+// ===== ADD PECA =====
+function addPeca() {
+  var nome = document.getElementById('p-nome').value.trim();
+  var altVis = parseFloat(document.getElementById('p-altura-vis').value) || 0;
+  var margem = parseFloat(document.getElementById('p-margem').value) || 0;
+  var altura = parseFloat((altVis + margem * 2).toFixed(1));
+  var tecId = parseInt(document.getElementById('p-tecido').value) || 0;
+  var posicao = document.getElementById('p-posicao').value.trim() || '—';
+  var preview = document.getElementById('preview');
+
+  if (!nome) { document.getElementById('p-nome').classList.add('erro'); document.getElementById('p-nome').focus(); return; }
+  if (!altVis) { document.getElementById('p-altura-vis').classList.add('erro'); document.getElementById('p-altura-vis').focus(); return; }
+  if (!tecidos.length) { alert('Adicione pelo menos um tecido primeiro.'); return; }
+  if (!tecId) { alert('Selecione o tecido desta peca.'); return; }
+  if (!preview.classList.contains('vis')) { alert('Preencha todos os campos para ver o calculo.'); return; }
+
+  var tec = tecidos.find(function(t) { return t.id === tecId; });
+  var comprimento = parseFloat(preview.dataset.comp);
+  var faixas = JSON.parse(preview.dataset.faixas);
+  var metros = parseFloat(preview.dataset.metros);
+  var custo = parseFloat(preview.dataset.custo);
+
+  var novaPeca = {
+    id: editIdx >= 0 ? pecas[editIdx].id : Date.now(),
+    nome: nome,
+    tecidoId: tecId,
+    tecidoNome: tec.nome,
+    tecidoCor: tec.cor,
+    alturaVis: altVis,
+    margem: margem,
+    altura: altura,
+    comprimento: comprimento,
+    franzido: getFz(),
+    faixas: faixas,
+    posicao: posicao,
+    metros: metros,
+    custo: custo,
+    preco: tec.preco
+  };
+
+  if (editIdx >= 0) {
+    // substituir na mesma posicao
+    pecas[editIdx] = novaPeca;
+    editIdx = -1;
+    document.querySelector('.btn-add-peca').textContent = '+ Adicionar esta peca';
+  } else {
+    pecas.push(novaPeca);
+  }
+
+  // limpar form
+  document.getElementById('p-nome').value = '';
+  document.getElementById('p-nome').classList.remove('erro');
+  document.getElementById('p-altura-vis').value = '';
+  document.getElementById('p-altura-vis').classList.remove('erro');
+  document.getElementById('p-altura-total').value = '';
+  document.getElementById('p-posicao').value = '';
+  document.getElementById('p-margem').value = '1.5';
+  var fi = document.getElementById('p-faixas');
+  if (fi) { fi.value = ''; faixasManual = false; }
+  document.getElementById('faixas-wrap').style.display = 'none';
+  fzAtual = '1';
+  selFz('1');
+  preview.classList.remove('vis');
+
+  renderPecas();
+}
+
+function removerPeca(id) {
+  if (!confirm('Remover esta peca?')) return;
+  pecas = pecas.filter(function(p) { return p.id !== id; });
+  renderPecas();
+}
+
+function editarPeca(id) {
+  var idx = pecas.findIndex(function(p) { return p.id === id; });
+  if (idx < 0) return;
+  var p = pecas[idx];
+  editIdx = idx; // guardar posicao
+  // preenche o form SEM remover da lista
+  document.getElementById('p-nome').value = p.nome;
+  document.getElementById('p-altura-vis').value = p.alturaVis || p.altura;
+  document.getElementById('p-margem').value = p.margem || 1.5;
+  document.getElementById('p-posicao').value = p.posicao === '—' ? '' : p.posicao;
+  document.getElementById('p-tecido').value = p.tecidoId;
+  // faixas
+  var fi = document.getElementById('p-faixas');
+  if (fi) { fi.value = p.faixas ? p.faixas.length : ''; faixasManual = true; }
+  // franzido
+  var fzStr = p.franzido.toString();
+  if (['1','1.5','2','2.5','3'].includes(fzStr)) {
+    selFz(fzStr);
+  } else {
+    selFz('c');
+    document.getElementById('fz-custom').value = p.franzido;
+  }
+  // mudar texto do botao
+  document.querySelector('.btn-add-peca').textContent = '✓ Salvar alteracoes';
+  recalc();
+  // scroll para o form
+  document.querySelector('.painel-esq').scrollIntoView({behavior:'smooth'});
+}
+
+// ===== RENDER PECAS =====
+function renderPecas() {
+  var div = document.getElementById('lista-pecas');
+  var count = document.getElementById('lista-count');
+
+  if (!pecas.length) {
+    div.innerHTML = '<div class="empty-lista"><div style="font-size:2rem;opacity:0.3">✂️</div><p>Nenhuma peca adicionada ainda.<br>Preencha o formulario ao lado e clique em adicionar.</p></div>';
+    document.getElementById('resumo-wrap').style.display = 'none';
+    count.textContent = '';
+    return;
+  }
+
+  count.textContent = pecas.length + ' peca(s)';
+
+  div.innerHTML = pecas.map(function(p) {
+    return '<div class="peca-card">' +
+      '<div class="peca-card-header">' +
+        '<div style="width:10px;height:10px;border-radius:50%;background:' + p.tecidoCor + ';flex-shrink:0"></div>' +
+        '<div class="peca-card-nome">' + p.nome + '</div>' +
+        '<span class="peca-tecido-tag">' + p.tecidoNome + '</span>' +
+      '</div>' +
+      '<div class="peca-card-body">' +
+        '<div class="peca-dados">' +
+          mkDado('Visivel', (p.alturaVis||p.altura) + 'cm') + mkDado('Corte', p.altura + 'cm') +
+          mkDado('Comprimento', p.comprimento + 'cm') +
+          mkDado('Franzido', p.franzido + ':1') +
+          mkDado('Posicao', p.posicao) +
+          mkDadoVerde('Metros', p.metros + 'm') +
+          mkDadoVerde('Custo', 'R$ ' + p.custo.toFixed(2)) +
+        '</div>' +
+        '<div class="faixas-lista-detalhe">' +
+          p.faixas.map(function(f, i) {
+            var mf = parseFloat((p.altura / 100).toFixed(3));
+            return '<div class="faixa-item"><span class="fi-num">' + (i+1) + 'ª</span><span class="fi-comp">' + f + 'cm de comprimento</span><span class="fi-metros">' + mf + 'm</span></div>';
+          }).join('') +
+        '</div>' +
+        '<div class="peca-acoes">' +
+          '<button class="btn btn-secondary btn-sm" onclick="editarPeca(' + p.id + ')">Editar</button>' +
+          '<button class="btn btn-danger" onclick="removerPeca(' + p.id + ')">Remover</button>' +
+        '</div>' +
+      '</div></div>';
+  }).join('');
+
+  renderResumo();
+}
+
+function mkDado(label, val) {
+  return '<div class="dado"><span class="dado-label">' + label + '</span><span class="dado-val">' + val + '</span></div>';
+}
+function mkDadoVerde(label, val) {
+  return '<div class="dado dado-verde"><span class="dado-label">' + label + '</span><span class="dado-val">' + val + '</span></div>';
+}
+
+// ===== RESUMO =====
+function renderResumo() {
+  var wrap = document.getElementById('resumo-wrap');
+  var div = document.getElementById('resumo');
+  if (!pecas.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  var totalMetros = 0, totalCusto = 0;
+  pecas.forEach(function(p) { totalMetros += p.metros; totalCusto += p.custo; });
+  totalMetros = parseFloat(totalMetros.toFixed(3));
+  totalCusto = parseFloat(totalCusto.toFixed(2));
+
+  // por tecido
+  var porTecido = {};
+  pecas.forEach(function(p) {
+    if (!porTecido[p.tecidoNome]) porTecido[p.tecidoNome] = {metros:0, custo:0};
+    porTecido[p.tecidoNome].metros += p.metros;
+    porTecido[p.tecidoNome].custo += p.custo;
+  });
+
+  var html = '<div class="resumo-titulo">Resumo</div>';
+  html += '<div class="resumo-linha"><span>Total de pecas</span><span>' + pecas.length + '</span></div>';
+  html += '<div class="resumo-linha"><span>Total de tecido</span><span>' + totalMetros + 'm</span></div>';
+  html += '<div class="resumo-linha"><span>Custo total do tecido</span><span>R$ ' + totalCusto.toFixed(2) + '</span></div>';
+
+  if (Object.keys(porTecido).length > 1) {
+    html += '<div class="resumo-por-tecido">';
+    Object.entries(porTecido).forEach(function(e) {
+      html += '<div class="resumo-tecido-linha"><span>' + e[0] + '</span><span>' + e[1].metros.toFixed(3) + 'm · R$ ' + e[1].custo.toFixed(2) + '</span></div>';
+    });
+    html += '</div>';
+  }
+
+  div.innerHTML = html;
+}
+
+// ===== SALVAR =====
+async function salvarEstrutura() {
+  var nome = document.getElementById('modelo-nome').value.trim();
+  if (!nome) { alert('Informe o nome do modelo.'); document.getElementById('modelo-nome').focus(); return; }
+  // calcular custo total
+  var totalMat = 0;
+  pecas.forEach(function(p) { totalMat += p.custo; });
+  aviamentos.forEach(function(a) { totalMat += (parseFloat(a.comprimento)||0) * (parseFloat(a.preco)||0); });
+  var dados = {
+    nome: nome,
+    categoria: document.getElementById('modelo-categoria').value,
+    perfil: document.getElementById('modelo-perfil').value,
+    tempo: parseFloat(document.getElementById('modelo-tempo').value) || 0,
+    obs: document.getElementById('modelo-obs').value.trim(),
+    foto: fotoModeloBase64 || null,
+    tecidos: tecidos,
+    pecas: pecas,
+    aviamentos: aviamentos,
+    custo_material: parseFloat(totalMat.toFixed(2))
+  };
+  try {
+    var btnSalvar = document.getElementById('btn-salvar-estrutura');
+    if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando...'; }
+    var {error} = await db.from('estruturas').insert(dados);
+    if (error) throw error;
+    alert('Estrutura salva com sucesso!');
+    if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar estrutura'; }
+  } catch(e) {
+    alert('Erro ao salvar: ' + e.message);
+    var btnSalvar = document.getElementById('btn-salvar-estrutura');
+    if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar estrutura'; }
+  }
+}
+
+// ===== AVIAMENTOS =====
+var aviamentos = [];
+var avCnt = 0;
+
+function addAviamentoPadrao(nome) {
+  aviamentos.push({id: Date.now() + Math.random(), nome: nome, onde: '', comprimento: '', preco: ''});
+  renderAviamentos();
+}
+
+function addAviamento() {
+  aviamentos.push({id: Date.now() + Math.random(), nome: '', onde: '', comprimento: '', preco: ''});
+  renderAviamentos();
+}
+
+function removerAviamento(id) {
+  aviamentos = aviamentos.filter(function(a) { return a.id !== id; });
+  renderAviamentos();
+}
+
+function renderAviamentos() {
+  var div = document.getElementById('aviamentos-lista');
+  if (!aviamentos.length) {
+    div.innerHTML = '<div style="font-size:12px;color:var(--texto-muted);text-align:center;padding:1rem">Nenhum aviamento adicionado ainda.</div>';
+    return;
+  }
+  div.innerHTML = aviamentos.map(function(a, i) {
+    var metros = parseFloat(a.comprimento) || 0;
+    var preco = parseFloat(a.preco) || 0;
+    var custo = metros * preco;
+    return '<div style="background:var(--creme);border-radius:6px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--borda)">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 80px 80px 28px;gap:6px;align-items:center;margin-bottom:6px">' +
+        '<div>' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--texto-muted);margin-bottom:3px">Nome</div>' +
+          '<input type="text" value="' + a.nome + '" placeholder="Ex: Renda branca" style="font-size:12px;padding:5px 8px" oninput="aviamentos[' + i + '].nome=this.value"/>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--texto-muted);margin-bottom:3px">Onde aplica</div>' +
+          '<input type="text" value="' + a.onde + '" placeholder="Ex: Ultima faixa, barra..." style="font-size:12px;padding:5px 8px" oninput="aviamentos[' + i + '].onde=this.value"/>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--texto-muted);margin-bottom:3px">Metros/Qtd</div>' +
+          '<input type="number" value="' + a.comprimento + '" placeholder="0" min="0" step="0.01" style="font-size:12px;padding:5px 8px" oninput="aviamentos[' + i + '].comprimento=this.value;renderAviamentos()"/>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--texto-muted);margin-bottom:3px">R$/metro</div>' +
+          '<input type="number" value="' + a.preco + '" placeholder="0,00" min="0" step="0.01" style="font-size:12px;padding:5px 8px" oninput="aviamentos[' + i + '].preco=this.value;renderAviamentos()"/>' +
+        '</div>' +
+        '<button class="btn-x-sm" onclick="removerAviamento(' + a.id + ')" style="margin-top:16px">×</button>' +
+      '</div>' +
+      (metros > 0 && preco > 0 ? '<div style="font-size:11px;color:var(--verde);font-weight:500">' + metros + ' × R$ ' + preco.toFixed(2) + ' = R$ ' + custo.toFixed(2) + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+
+// ===== FOTO DO MODELO =====
+// ===== CATEGORIAS DO MODELO =====
+var CATS_MODELO_PADRAO = ['Saia','Vestido','Camiseta','Calca','Capa','Outro'];
+var CATS_MODELO_ICON = {Saia:'👗',Vestido:'💃',Camiseta:'👕',Calca:'👖',Capa:'🧣',Outro:'📋'};
+var catsModelo = [...CATS_MODELO_PADRAO];
+async function carregarCatsModelo() {
+  var {data} = await db.from('categorias').select('nome').eq('tipo','modelo').order('nome');
+  var extras = (data||[]).map(function(c) { return c.nome; });
+  extras.forEach(function(c) { if (!catsModelo.includes(c)) catsModelo.push(c); });
+  renderSelectCatsModelo('Saia');
+}
+
+function getCatModeloIcon(cat) { return CATS_MODELO_ICON[cat] || '🏷️'; }
+
+function renderSelectCatsModelo(valorAtual) {
+  var sel = document.getElementById('modelo-categoria');
+  sel.innerHTML = catsModelo.map(function(c) {
+    return '<option value="' + c + '"' + (c === valorAtual ? ' selected' : '') + '>' + getCatModeloIcon(c) + ' ' + c + '</option>';
+  }).join('');
+}
+
+function adicionarCatModelo() {
+  var input = document.getElementById('nova-cat-modelo');
+  var nome = input.value.trim();
+  if (!nome) return;
+  if (catsModelo.find(function(c) { return c.toLowerCase() === nome.toLowerCase(); })) {
+    alert('Categoria já existe.'); return;
+  }
+  catsModelo.push(nome);
+  await db.from('categorias').insert({tipo:'modelo', nome: nome});
+  renderSelectCatsModelo(nome);
+  input.value = '';
+}
+
+var fotoModeloBase64 = null;
+function onFotoModeloChange(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    fotoModeloBase64 = ev.target.result;
+    document.getElementById('foto-preview-img').src = fotoModeloBase64;
+    document.getElementById('foto-preview-img').style.display = 'block';
+    document.getElementById('foto-placeholder').style.display = 'none';
+    document.getElementById('foto-upload-area').classList.add('tem-foto');
+  };
+  reader.readAsDataURL(file);
+}
+function removerFotoModelo(e) {
+  e.stopPropagation();
+  fotoModeloBase64 = null;
+  document.getElementById('foto-preview-img').src = '';
+  document.getElementById('foto-preview-img').style.display = 'none';
+  document.getElementById('foto-placeholder').style.display = 'flex';
+  document.getElementById('foto-upload-area').classList.remove('tem-foto');
+  document.getElementById('foto-input-file').value = '';
+}
+
+// ===== BIBLIOTECA DE AVIAMENTOS =====
+function renderBibAviamentos() {
+  var div = document.getElementById('bib-aviamentos-lista');
+  if (!div) return;
+  var bibAv = biblioteca.filter(function(b) { return b.categoria === 'Aviamento' || b.unidade === 'unidade' || b.unidade === 'rolo'; });
+  if (!bibAv.length) { div.innerHTML = ''; return; }
+  div.innerHTML = bibAv.map(function(b) {
+    return '<button onclick="addAviamentoDaBiblioteca(' + b.id + ')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer;color:var(--texto)">' +
+      b.nome + ' · R$ ' + parseFloat(b.preco).toFixed(2) + '/' + b.unidade +
+    '</button>';
+  }).join('');
+}
+
+function addAviamentoDaBiblioteca(id) {
+  var item = biblioteca.find(function(b) { return b.id === id; });
+  if (!item) return;
+  aviamentos.push({id: Date.now() + Math.random(), nome: item.nome, onde: '', comprimento: '', preco: item.preco, bibId: id});
+  renderAviamentos();
+}
+
+
+// ===== INIT =====
+(async function() {
+  await carregarBiblioteca();
+  await carregarCatsModelo();
+  renderTecidos();
+  renderPecas();
+  renderAviamentos();
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+</body>
+</html>
