@@ -119,6 +119,41 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rosa);ba
 
 @media(max-width:600px){
   .form-row,.form-row-3{grid-template-columns:1fr;}
-  .nav-brand{font-size:1rem;}
+  .nav-brand{font-size:1rem;padding:0.75rem 0.5rem 0.75rem 0;margin-right:0;}
+  .nav-link{padding:0.75rem 0.6rem;font-size:11px;}
   .nav-link span{display:none;}
+  .nav-inner{gap:0;justify-content:space-between;}
+  .container{padding:1rem 0.75rem;}
+  .sec-header{margin-bottom:1rem;}
+  .sec-header h2{font-size:1.4rem;}
+  .modal{padding:1.25rem;border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;right:0;max-width:100%;max-height:90vh;margin:0;}
+  .modal-overlay.aberto{align-items:flex-end;padding:0;}
+  .ajuda-modal{border-radius:10px 10px 0 0;position:fixed;bottom:0;left:0;right:0;max-width:100%;max-height:85vh;margin:0;}
+  .ajuda-overlay.aberto{align-items:flex-end;padding:0;}
+  .btn{padding:10px 14px;font-size:13px;}
+  .btn-sm{padding:8px 12px;font-size:12px;}
+  .modal-acoes{flex-direction:column-reverse;gap:6px;}
+  .modal-acoes .btn{width:100%;text-align:center;}
+  input,select,textarea{font-size:16px;padding:10px 12px;}
+  .clientes-grid{grid-template-columns:1fr;}
+  .materiais-grid{grid-template-columns:1fr 1fr;}
+  .add-pag{grid-template-columns:1fr 1fr;gap:6px;}
+  .ped-grid{grid-template-columns:1fr 1fr;}
+  .ped-acoes{flex-wrap:wrap;}
+  .resumo-bar{flex-direction:column;}
+  .resumo-item{min-width:unset;}
+  .filtros-wrap{gap:4px;}
+  .filtro-btn{font-size:11px;padding:5px 10px;}
+  .busca-wrap{width:100%;}
+  .busca-wrap input{min-width:unset;width:100%;}
+  .perfil-sel{gap:6px;}
+  .perfil-btn .pb-icon{font-size:1.2rem;}
+  .perfil-btn .pb-label{font-size:10px;}
+  .btn-ajuda{width:40px;height:40px;font-size:1.1rem;bottom:1rem;right:1rem;}
+  .add-sobra-linha1{grid-template-columns:1fr 1fr;}
+  .add-sobra-linha2{flex-direction:column;}
+  .status-sel{flex-direction:column;gap:4px;}
+  .status-btn{width:100%;text-align:center;}
+  .sec-header{flex-direction:column;align-items:flex-start;}
+  .sec-header .btn{width:100%;text-align:center;}
 }
