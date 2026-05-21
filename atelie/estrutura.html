@@ -405,7 +405,7 @@ async function carregarBiblioteca() {
 }
 
 // ===== TECIDOS =====
-function addTecido() {
+async function addTecido() {
   var nome = document.getElementById('tec-nome').value.trim();
   var preco = parseFloat(document.getElementById('tec-preco').value) || 0;
   var larg = parseFloat(document.getElementById('tec-larg').value) || 150;
@@ -415,9 +415,10 @@ function addTecido() {
   tecidos.push(newTec);
   // salvar na biblioteca se nao existe
   if (!biblioteca.find(function(b) { return b.nome.toLowerCase() === nome.toLowerCase(); })) {
-    biblioteca.push({id: Date.now()+1, nome: nome, preco: preco, largura: larg});
-    await db.from('materiais').upsert(biblioteca);
-    renderBiblioteca();
+    try {
+      await db.from('materiais').insert({nome: nome, preco: preco, unidade: 'metro', categoria: 'Tecido', estoque: 0});
+      await carregarBiblioteca();
+    } catch(e) { console.error('Erro ao salvar na biblioteca:', e); }
   }
   document.getElementById('tec-nome').value = '';
   document.getElementById('tec-preco').value = '';
@@ -430,7 +431,7 @@ function addTecidoBiblioteca(id) {
   var t = biblioteca.find(function(b) { return b.id === id; });
   if (!t) return;
   if (tecidos.find(function(x) { return x.nome === t.nome; })) { alert('Este tecido ja foi adicionado.'); return; }
-  tecidos.push({id: Date.now(), nome: t.nome, preco: t.preco, largura: t.largura, cor: tecCores[tecidos.length % tecCores.length]});
+  tecidos.push({id: Date.now(), nome: t.nome, preco: parseFloat(t.preco)||0, largura: parseFloat(t.largura)||150, cor: tecCores[tecidos.length % tecCores.length]});
   renderTecidos();
   recalc();
 }
@@ -440,9 +441,12 @@ function renderBiblioteca() {
   var div = document.getElementById('biblioteca-lista');
   if (!biblioteca.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  div.innerHTML = biblioteca.map(function(t) {
+  // filtra só tecidos e forros
+  var tecBib = biblioteca.filter(function(b) { return !b.categoria || b.categoria === 'Tecido' || b.categoria === 'Forro'; });
+  if (!tecBib.length) { wrap.style.display = 'none'; return; }
+  div.innerHTML = tecBib.map(function(t) {
     return '<button onclick="addTecidoBiblioteca(' + t.id + ')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer;color:var(--texto)">' +
-      t.nome + ' · R$ ' + t.preco.toFixed(2) + '/m' +
+      t.nome + ' · R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m' +
     '</button>';
   }).join('');
 }
