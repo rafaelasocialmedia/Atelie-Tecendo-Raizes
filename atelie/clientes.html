@@ -112,18 +112,46 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label class="lbl">Tamanho usual</label>
-        <select id="cli-tamanho" onchange="calcElastico()">
-          <option value="">—</option>
-          <option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option>
-          <option>34</option><option>36</option><option>38</option><option>40</option>
-          <option>42</option><option>44</option><option>46</option><option>48</option><option>50</option>
-          <option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option>
-        </select>
-      </div>
-      <div class="form-group">
         <label class="lbl">Data da medição <span class="opcional">(opcional)</span></label>
         <input type="date" id="cli-data"/>
+      </div>
+    </div>
+
+    <!-- TAMANHOS POR TIPO -->
+    <div style="background:var(--creme);border-radius:6px;padding:0.85rem;margin-bottom:0.9rem">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-muted);margin-bottom:0.75rem">👕 Tamanhos por tipo de roupa <span style="font-size:10px;font-weight:400;text-transform:none">— preencha o que souber</span></div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="lbl">Camiseta / Blusa</label>
+          <select id="cli-tam-camiseta" onchange="calcElastico()">
+            <option value="">—</option>
+            <option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XG</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="lbl">Calça</label>
+          <select id="cli-tam-calca">
+            <option value="">—</option>
+            <option>36</option><option>38</option><option>40</option><option>42</option>
+            <option>44</option><option>46</option><option>48</option><option>50</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="lbl">Vestido</label>
+          <select id="cli-tam-vestido">
+            <option value="">—</option>
+            <option>36</option><option>38</option><option>40</option><option>42</option>
+            <option>44</option><option>46</option><option>48</option><option>50</option>
+            <option>P</option><option>M</option><option>G</option><option>GG</option>
+          </select>
+        </div>
+        <div class="form-group" id="tam-infantil-wrap" style="display:none">
+          <label class="lbl">Infantil</label>
+          <select id="cli-tam-infantil">
+            <option value="">—</option>
+            <option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -274,6 +302,8 @@ function selPerfil(perfil, btn) {
   });
   btn.classList.add('sel-' + perfil[0]);
   document.getElementById('grupo-infantil-extra').style.display = perfil === 'infantil' ? '' : 'none';
+  var tamInfantil = document.getElementById('tam-infantil-wrap');
+  if (tamInfantil) tamInfantil.style.display = perfil === 'infantil' ? '' : 'none';
   document.getElementById('lbl-busto').textContent = perfil === 'masculino' ? 'Tórax (cm)' : 'Busto (cm)';
   document.getElementById('campo-decote').style.display = perfil === 'feminino' ? '' : 'none';
   document.getElementById('campo-entrepernas').style.display = perfil === 'feminino' ? 'none' : '';
@@ -303,7 +333,8 @@ function calcElasticoValor(cintura, tamanho) {
 
 function calcElastico() {
   var cintura = parseFloat(document.getElementById('cli-cintura').value) || 0;
-  var tamanho = document.getElementById('cli-tamanho').value;
+  var tamCamiseta = document.getElementById('cli-tam-camiseta') ? document.getElementById('cli-tam-camiseta').value : '';
+  var tamanho = tamCamiseta;
   var box = document.getElementById('elastico-preview');
   var result = calcElasticoValor(cintura, tamanho);
   if (result) {
@@ -340,7 +371,11 @@ function abrirModal(id) {
     perfil = c.perfil || 'feminino';
     document.getElementById('cli-nome').value = c.nome || '';
     document.getElementById('cli-contato').value = c.contato || '';
-    document.getElementById('cli-tamanho').value = c.tamanho || '';
+    var t = c.tamanhos || {};
+    if(document.getElementById('cli-tam-camiseta')) document.getElementById('cli-tam-camiseta').value = t.camiseta || '';
+    if(document.getElementById('cli-tam-calca')) document.getElementById('cli-tam-calca').value = t.calca || '';
+    if(document.getElementById('cli-tam-vestido')) document.getElementById('cli-tam-vestido').value = t.vestido || '';
+    if(document.getElementById('cli-tam-infantil')) document.getElementById('cli-tam-infantil').value = t.infantil || '';
     document.getElementById('cli-data').value = c.data_med || '';
     document.getElementById('cli-obs').value = c.obs || '';
     document.getElementById('cli-idade').value = c.idade || '';
@@ -361,7 +396,14 @@ async function salvarCliente() {
   var btn = document.getElementById('btn-salvar');
   setLoading(btn, true);
   var cintura = parseFloat(document.getElementById('cli-cintura').value) || 0;
-  var tamanho = document.getElementById('cli-tamanho').value;
+  var tamCamiseta = document.getElementById('cli-tam-camiseta') ? document.getElementById('cli-tam-camiseta').value : '';
+  var tamanho = tamCamiseta;
+  var tamanhos = {
+    camiseta: tamCamiseta,
+    calca: document.getElementById('cli-tam-calca') ? document.getElementById('cli-tam-calca').value : '',
+    vestido: document.getElementById('cli-tam-vestido') ? document.getElementById('cli-tam-vestido').value : '',
+    infantil: document.getElementById('cli-tam-infantil') ? document.getElementById('cli-tam-infantil').value : ''
+  };
   var elasticoResult = calcElasticoValor(cintura, tamanho);
   var medidas = {};
   Object.entries(MAPA_MEDIDAS).forEach(function(e) {
@@ -372,6 +414,7 @@ async function salvarCliente() {
     perfil: perfilAtual, nome: nome,
     contato: document.getElementById('cli-contato').value.trim(),
     tamanho: tamanho,
+    tamanhos: tamanhos,
     data_med: document.getElementById('cli-data').value || null,
     obs: document.getElementById('cli-obs').value.trim(),
     idade: document.getElementById('cli-idade').value.trim(),
@@ -408,6 +451,17 @@ async function removerCliente(id) {
   }
 }
 
+function renderTamanhos(c) {
+  var t = c.tamanhos || {};
+  var itens = [];
+  if (t.camiseta) itens.push('Camiseta: <strong>' + t.camiseta + '</strong>');
+  if (t.calca) itens.push('Calça: <strong>' + t.calca + '</strong>');
+  if (t.vestido) itens.push('Vestido: <strong>' + t.vestido + '</strong>');
+  if (t.infantil) itens.push('Infantil: <strong>' + t.infantil + '</strong>');
+  if (!itens.length) return '';
+  return '<div style="font-size:11px;color:var(--texto-muted);margin-bottom:6px">👕 ' + itens.join(' · ') + '</div>';
+}
+
 async function carregarClientes() {
   var {data, error} = await db.from('clientes').select('*').order('nome');
   if (error) { toast('Erro ao carregar clientes', 'erro'); return; }
@@ -440,7 +494,8 @@ function renderClientes() {
     return '<div class="card-cliente">' +
       '<div class="cli-header"><span style="font-size:1.1rem">' + (PERFIL_ICON[perfil]||'👗') + '</span>' +
       '<div><div class="cli-nome">' + c.nome + '</div>' +
-      '<span class="cli-tag ' + (PERFIL_TAG[perfil]||'') + '">' + (PERFIL_LABEL[perfil]||perfil) + (c.tamanho ? ' · Tam. ' + c.tamanho : '') + (c.idade ? ' · ' + c.idade : '') + '</span></div></div>' +
+      '<span class="cli-tag ' + (PERFIL_TAG[perfil]||'') + '">' + (PERFIL_LABEL[perfil]||perfil) + (c.idade ? ' · ' + c.idade : '') + '</span></div></div>' +
+      renderTamanhos(c) +
       (c.contato ? '<div class="cli-contato">📱 ' + c.contato + '</div>' : '') +
       (elResult ? '<div class="' + (elResult.tipo === 'real' ? 'cli-elastico' : 'cli-elastico-est') + '">📐 Elástico: ' + elResult.val + 'cm' + (elResult.tipo === 'estimativa' ? ' (est.)' : '') + '</div>' : '') +
       (meds.length ? '<div class="medidas-grid">' + meds.slice(0,6).map(function(e) {
