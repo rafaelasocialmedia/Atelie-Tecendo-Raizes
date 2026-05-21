@@ -64,6 +64,11 @@
   </div>
 </nav>
 
+<!-- BANNER OFFLINE -->
+<div id="banner-offline" style="display:none;background:#C4973A;color:white;padding:8px 1rem;font-size:12px;font-weight:500;align-items:center;justify-content:center;gap:8px;position:sticky;top:52px;z-index:99;">
+  📶 <span id="banner-count">Você está offline</span>
+</div>
+
 <div class="container">
   <div class="sec-header">
     <h2>Biblioteca de <em>Materiais</em></h2>
@@ -521,5 +526,7 @@ function renderMateriais() {
 carregarCategorias();
 carregarMateriais();
 </script>
+<script src="/js/offline.js"></script>
+<script>atualizarBannerOffline();</script>
 </body>
 </html>
