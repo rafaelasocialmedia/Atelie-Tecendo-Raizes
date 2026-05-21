@@ -528,5 +528,31 @@ carregarMateriais();
 </script>
 <script src="/js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
+
+<style>
+.btn-ajuda{position:fixed;bottom:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;background:#5C4033;color:#FAF7F2;border:none;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(44,24,16,0.3);z-index:300;transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-family:sans-serif;}
+.btn-ajuda:hover{background:#2C1810;transform:scale(1.1);}
+.ajuda-overlay{display:none;position:fixed;inset:0;background:rgba(44,24,16,0.45);z-index:400;align-items:center;justify-content:center;padding:1rem;}
+.ajuda-overlay.aberto{display:flex;}
+.ajuda-modal{background:#FDFCFB;border-radius:10px;padding:1.5rem;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(44,24,16,0.2);}
+.ajuda-modal h3{font-size:1.3rem;font-weight:400;color:#5C4033;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid #E0D5CF;}
+.ajuda-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #E0D5CF;}
+.ajuda-item:last-child{border-bottom:none;}
+.ajuda-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
+.ajuda-titulo{font-size:13px;font-weight:500;color:#2C1810;margin-bottom:3px;}
+.ajuda-desc{font-size:12px;color:#9E8880;line-height:1.5;}
+.ajuda-fechar{display:flex;justify-content:flex-end;margin-top:1rem;}
+.btn-ajuda-fechar{background:#5C4033;color:#FAF7F2;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:12px;}
+</style>
+
+<button class="btn-ajuda" onclick="document.getElementById('ajuda-overlay').classList.add('aberto')" title="Ajuda">?</button>
+<div class="ajuda-overlay" id="ajuda-overlay" onclick="if(event.target===this)this.classList.remove('aberto')">
+  <div class="ajuda-modal">
+    <h3>🧵 Como usar — Materiais</h3>
+    <div class="ajuda-item"><div class="ajuda-icon">📷</div><div><div class="ajuda-titulo">Adicione foto do material</div><div class="ajuda-desc">Clique na área da foto para tirar ou escolher uma imagem. Ajuda a identificar visualmente o tecido ou aviamento.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">💰</div><div><div class="ajuda-titulo">Preço e unidade</div><div class="ajuda-desc">Informe o preço por metro, unidade, rolo ou kg. O sistema usa esse preço para calcular o custo dos modelos automaticamente.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">📦</div><div><div class="ajuda-titulo">Controle de estoque</div><div class="ajuda-desc">Use os botões − e + para ajustar a quantidade rapidamente. Defina um mínimo para receber alerta quando estiver acabando.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">📐</div><div><div class="ajuda-titulo">Sobras de tecido</div><div class="ajuda-desc">Clique em "Sobras" no card do material para registrar pedaços que sobraram de pedidos anteriores, com largura e comprimento.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">🏷️</div><div><div class="ajuda-titulo">Categorias personalizadas</div><div class="ajuda-desc">Além das categorias padrão, você pode criar novas categorias digitando no campo e clicando em + Add.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">🔄</div><div><div class="ajuda-titulo">Preço atualizado automaticamente</div><div class="ajuda-desc">Quando você atualiza o preço de um material, todos os modelos em aberto que usam esse material recalculam o custo automaticamente.</div></div></div>
+    <div class="ajuda-fechar"><button class="btn-ajuda-fechar" onclick="document.getElementById('ajuda-overlay').classList.remove('aberto')">Entendi!</button></div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -571,5 +571,31 @@ carregarPedidos();
 </script>
 <script src="/js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
+
+<style>
+.btn-ajuda{position:fixed;bottom:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;background:#5C4033;color:#FAF7F2;border:none;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(44,24,16,0.3);z-index:300;transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-family:sans-serif;}
+.btn-ajuda:hover{background:#2C1810;transform:scale(1.1);}
+.ajuda-overlay{display:none;position:fixed;inset:0;background:rgba(44,24,16,0.45);z-index:400;align-items:center;justify-content:center;padding:1rem;}
+.ajuda-overlay.aberto{display:flex;}
+.ajuda-modal{background:#FDFCFB;border-radius:10px;padding:1.5rem;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(44,24,16,0.2);}
+.ajuda-modal h3{font-size:1.3rem;font-weight:400;color:#5C4033;margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid #E0D5CF;}
+.ajuda-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #E0D5CF;}
+.ajuda-item:last-child{border-bottom:none;}
+.ajuda-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
+.ajuda-titulo{font-size:13px;font-weight:500;color:#2C1810;margin-bottom:3px;}
+.ajuda-desc{font-size:12px;color:#9E8880;line-height:1.5;}
+.ajuda-fechar{display:flex;justify-content:flex-end;margin-top:1rem;}
+.btn-ajuda-fechar{background:#5C4033;color:#FAF7F2;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:12px;}
+</style>
+
+<button class="btn-ajuda" onclick="document.getElementById('ajuda-overlay').classList.add('aberto')" title="Ajuda">?</button>
+<div class="ajuda-overlay" id="ajuda-overlay" onclick="if(event.target===this)this.classList.remove('aberto')">
+  <div class="ajuda-modal">
+    <h3>📦 Como usar — Pedidos</h3>
+    <div class="ajuda-item"><div class="ajuda-icon">👗</div><div><div class="ajuda-titulo">Selecione a cliente</div><div class="ajuda-desc">Ao escolher a cliente, o sistema mostra as medidas e o elástico calculado automaticamente.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">✂️</div><div><div class="ajuda-titulo">Selecione o modelo</div><div class="ajuda-desc">Ao escolher o modelo de corte, o custo do material é preenchido automaticamente com base nos tecidos cadastrados.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">💰</div><div><div class="ajuda-titulo">Financeiro</div><div class="ajuda-desc">Informe o custo do material (puxado do modelo) e a mão de obra. O total é calculado automaticamente.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">💳</div><div><div class="ajuda-titulo">Registre pagamentos</div><div class="ajuda-desc">Adicione cada pagamento com forma (Pix, Dinheiro, Cartão), data e observação. O saldo restante atualiza na hora.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">📦</div><div><div class="ajuda-titulo">Marcar como entregue</div><div class="ajuda-desc">Ao entregar, o sistema pergunta se sobrou tecido. As sobras vão automaticamente para a biblioteca com a origem registrada.</div></div></div><div class="ajuda-item"><div class="ajuda-icon">📶</div><div><div class="ajuda-titulo">Funciona offline</div><div class="ajuda-desc">Se estiver sem internet, os dados são salvos localmente e sincronizados automaticamente quando a conexão voltar.</div></div></div>
+    <div class="ajuda-fechar"><button class="btn-ajuda-fechar" onclick="document.getElementById('ajuda-overlay').classList.remove('aberto')">Entendi!</button></div>
+  </div>
+</div>
+
 </body>
 </html>

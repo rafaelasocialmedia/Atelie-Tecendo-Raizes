@@ -515,5 +515,69 @@ carregarClientes();
 </script>
 <script src="/js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
+
+<style>
+.btn-ajuda{position:fixed;bottom:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;background:var(--marrom);color:var(--creme);border:none;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(44,24,16,0.3);z-index:300;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+.btn-ajuda:hover{background:var(--texto);transform:scale(1.1);}
+.ajuda-overlay{display:none;position:fixed;inset:0;background:rgba(44,24,16,0.45);z-index:400;align-items:center;justify-content:center;padding:1rem;}
+.ajuda-overlay.aberto{display:flex;}
+.ajuda-modal{background:var(--branco);border-radius:10px;padding:1.5rem;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(44,24,16,0.2);}
+.ajuda-modal h3{font-family:var(--serif);font-size:1.4rem;font-weight:300;color:var(--marrom);margin-bottom:1rem;padding-bottom:0.75rem;border-bottom:1px solid var(--borda);}
+.ajuda-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--borda);}
+.ajuda-item:last-child{border-bottom:none;}
+.ajuda-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px;}
+.ajuda-titulo{font-size:13px;font-weight:500;color:var(--texto);margin-bottom:3px;}
+.ajuda-desc{font-size:12px;color:var(--texto-muted);line-height:1.5;}
+.ajuda-fechar{display:flex;justify-content:flex-end;margin-top:1rem;}
+</style>
+
+<!-- BOTÃO ? -->
+<button class="btn-ajuda" onclick="document.getElementById('ajuda-overlay').classList.add('aberto')" title="Ajuda">?</button>
+
+<!-- MODAL DE AJUDA -->
+<div class="ajuda-overlay" id="ajuda-overlay" onclick="if(event.target===this)this.classList.remove('aberto')">
+  <div class="ajuda-modal">
+    <h3>👗 Como usar — Clientes</h3>
+    <div class="ajuda-item">
+      <div class="ajuda-icon">🌸</div>
+      <div>
+        <div class="ajuda-titulo">Escolha o perfil primeiro</div>
+        <div class="ajuda-desc">Feminino, Masculino ou Infantil. O formulário muda automaticamente mostrando só as medidas relevantes para cada perfil.</div>
+      </div>
+    </div>
+    <div class="ajuda-item">
+      <div class="ajuda-icon">👕</div>
+      <div>
+        <div class="ajuda-titulo">Tamanhos por tipo de roupa</div>
+        <div class="ajuda-desc">Preencha só o que souber — camiseta usa P/M/G, calça e vestido usam numeração (36, 38, 40...). Não precisa preencher tudo.</div>
+      </div>
+    </div>
+    <div class="ajuda-item">
+      <div class="ajuda-icon">📐</div>
+      <div>
+        <div class="ajuda-titulo">Medidas detalhadas</div>
+        <div class="ajuda-desc">Se tiver as medidas reais da cliente, preencha nos grupos dobráveis (Corpo geral, Parte de cima, etc). Quanto mais completo, melhor o cálculo.</div>
+      </div>
+    </div>
+    <div class="ajuda-item">
+      <div class="ajuda-icon">🧶</div>
+      <div>
+        <div class="ajuda-titulo">Elástico calculado automático</div>
+        <div class="ajuda-desc">Ao preencher a cintura, o sistema calcula o tamanho do elástico automaticamente (cintura − 12%). Se não tiver a cintura, calcula pela numeração da camiseta.</div>
+      </div>
+    </div>
+    <div class="ajuda-item">
+      <div class="ajuda-icon">💾</div>
+      <div>
+        <div class="ajuda-titulo">Dados salvos na nuvem</div>
+        <div class="ajuda-desc">Tudo que você salvar aparece no celular e no computador automaticamente. Se estiver offline, salva localmente e sincroniza quando a internet voltar.</div>
+      </div>
+    </div>
+    <div class="ajuda-fechar">
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('ajuda-overlay').classList.remove('aberto')">Entendi!</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
