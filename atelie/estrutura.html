@@ -232,19 +232,16 @@ input.erro{border-color:var(--rosa);background:var(--rosa-claro);}
           <span class="card-header-titulo">🧵 Tecidos desta saia</span>
         </div>
         <div class="card-body">
-          <!-- BIBLIOTECA -->
-          <div id="biblioteca-wrap" style="margin-bottom:8px;display:none">
-            <div style="font-size:11px;font-weight:500;color:var(--texto-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Tecidos salvos — clique para adicionar</div>
-            <div id="biblioteca-lista" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px"></div>
-          </div>
           <div id="tecidos-lista"></div>
-          <div class="add-tecido">
-            <input type="text" id="tec-nome" placeholder="Nome do tecido"/>
-            <input type="number" id="tec-preco" placeholder="R$/m" min="0" step="0.01"/>
-            <input type="number" id="tec-larg" placeholder="Larg.cm" value="150" min="50" step="10"/>
-            <button class="btn btn-primary btn-sm" onclick="addTecido()">+</button>
+          <!-- SELECT DA BIBLIOTECA -->
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px">
+            <select id="tec-select" style="flex:1;font-size:13px;padding:8px 10px;border:1px solid var(--borda);border-radius:4px;background:var(--creme);color:var(--texto)" onchange="onTecSelectChange()">
+              <option value="">Selecione da biblioteca...</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="addTecidoSelecionado()">+ Adicionar</button>
           </div>
-          <div style="font-size:10px;color:var(--texto-muted);margin-top:6px">Ex: Oxfordine branco · R$ 9,85/m · 150cm</div>
+          <div id="tec-preview" style="display:none;font-size:11px;color:var(--texto-muted);margin-top:4px;padding:4px 8px;background:var(--creme);border-radius:4px"></div>
+          <div style="font-size:11px;color:var(--texto-muted);margin-top:6px">Cadastre tecidos na <a href="biblioteca.html" style="color:var(--rosa)">Biblioteca de Materiais</a> para aparecerem aqui.</div>
         </div>
       </div>
 
@@ -405,50 +402,41 @@ async function carregarBiblioteca() {
 }
 
 // ===== TECIDOS =====
-async function addTecido() {
-  var nome = document.getElementById('tec-nome').value.trim();
-  var preco = parseFloat(document.getElementById('tec-preco').value) || 0;
-  var larg = parseFloat(document.getElementById('tec-larg').value) || 150;
-  if (!nome) { alert('Informe o nome do tecido.'); return; }
-  if (!preco) { alert('Informe o preco do tecido.'); return; }
-  var newTec = {id: Date.now(), nome: nome, preco: preco, largura: larg, cor: tecCores[tecidos.length % tecCores.length]};
-  tecidos.push(newTec);
-  // salvar na biblioteca se nao existe
-  if (!biblioteca.find(function(b) { return b.nome.toLowerCase() === nome.toLowerCase(); })) {
-    try {
-      await db.from('materiais').insert({nome: nome, preco: preco, unidade: 'metro', categoria: 'Tecido', estoque: 0});
-      await carregarBiblioteca();
-    } catch(e) { console.error('Erro ao salvar na biblioteca:', e); }
-  }
-  document.getElementById('tec-nome').value = '';
-  document.getElementById('tec-preco').value = '';
-  document.getElementById('tec-larg').value = '150';
-  renderTecidos();
-  recalc();
+function onTecSelectChange() {
+  var id = parseInt(document.getElementById('tec-select').value) || 0;
+  var prev = document.getElementById('tec-preview');
+  if (!id) { prev.style.display = 'none'; return; }
+  var t = biblioteca.find(function(b) { return b.id === id; });
+  if (!t) { prev.style.display = 'none'; return; }
+  prev.textContent = t.nome + ' · R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m · estoque: ' + (t.estoque||0) + ' ' + (t.unidade||'m');
+  prev.style.display = 'block';
 }
 
-function addTecidoBiblioteca(id) {
+function addTecidoSelecionado() {
+  var id = parseInt(document.getElementById('tec-select').value) || 0;
+  if (!id) { alert('Selecione um tecido da biblioteca.'); return; }
   var t = biblioteca.find(function(b) { return b.id === id; });
   if (!t) return;
   if (tecidos.find(function(x) { return x.nome === t.nome; })) { alert('Este tecido ja foi adicionado.'); return; }
-  tecidos.push({id: Date.now(), nome: t.nome, preco: parseFloat(t.preco)||0, largura: parseFloat(t.largura)||150, cor: tecCores[tecidos.length % tecCores.length]});
+  tecidos.push({id: Date.now(), nome: t.nome, preco: parseFloat(t.preco)||0, largura: parseFloat(t.largura)||150, bibId: t.id, cor: tecCores[tecidos.length % tecCores.length]});
+  document.getElementById('tec-select').value = '';
+  document.getElementById('tec-preview').style.display = 'none';
   renderTecidos();
   recalc();
 }
 
 function renderBiblioteca() {
-  var wrap = document.getElementById('biblioteca-wrap');
-  var div = document.getElementById('biblioteca-lista');
-  if (!biblioteca.length) { wrap.style.display = 'none'; return; }
-  wrap.style.display = 'block';
-  // filtra só tecidos e forros
+  var sel = document.getElementById('tec-select');
+  if (!sel) return;
   var tecBib = biblioteca.filter(function(b) { return !b.categoria || b.categoria === 'Tecido' || b.categoria === 'Forro'; });
-  if (!tecBib.length) { wrap.style.display = 'none'; return; }
-  div.innerHTML = tecBib.map(function(t) {
-    return '<button onclick="addTecidoBiblioteca(' + t.id + ')" style="font-size:11px;padding:4px 10px;border:1px solid var(--borda);border-radius:20px;background:var(--branco);cursor:pointer;color:var(--texto)">' +
-      t.nome + ' · R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m' +
-    '</button>';
-  }).join('');
+  var valorAtual = sel.value;
+  sel.innerHTML = '<option value="">Selecione da biblioteca...</option>' +
+    tecBib.map(function(t) {
+      return '<option value="' + t.id + '"' + (t.id == valorAtual ? ' selected' : '') + '>' +
+        t.nome + ' — R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m' +
+        (t.estoque ? ' (estoque: ' + t.estoque + ')' : '') +
+      '</option>';
+    }).join('');
 }
 
 function removerTecido(id) {
