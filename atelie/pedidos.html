@@ -171,6 +171,26 @@
 <script src="js/supabase.js"></script>
 <script>
 const FORMAS = ['Pix','Dinheiro','Cartão crédito','Cartão débito','Outro'];
+const TAMANHOS_PADRAO = {
+  '2':42,'4':46,'6':50,'8':54,'10':58,'12':62,
+  '34':62,'36':66,'38':70,'40':74,'42':78,'44':82,'46':86,'48':90,'50':94,
+  'PP':60,'P':66,'M':72,'G':78,'GG':84,'XG':90
+};
+const ELASTICO_REDUCAO = 12;
+
+function calcElasticoValor(cintura, tamanho) {
+  var red = ELASTICO_REDUCAO;
+  if (cintura > 0) {
+    var el = (cintura * (1 - red/100)).toFixed(1);
+    return {val: el, tipo: 'real'};
+  }
+  if (tamanho && TAMANHOS_PADRAO[tamanho]) {
+    var cinPad = TAMANHOS_PADRAO[tamanho];
+    var el2 = (cinPad * (1 - red/100)).toFixed(1);
+    return {val: el2, tipo: 'estimativa'};
+  }
+  return null;
+}
 let pedidos = [];
 let clientes = [];
 let estruturas = [];
@@ -215,7 +235,17 @@ function onClienteChange() {
   if (!c) { prev.style.display = 'none'; return; }
   var html = '<strong>' + c.nome + '</strong>';
   if (c.contato) html += ' · 📱 ' + c.contato;
-  if (c.tamanho) html += '<br>Tamanho: <strong>' + c.tamanho + '</strong>';
+
+  // Tamanhos por tipo
+  var t = c.tamanhos || {};
+  var tams = [];
+  if (t.camiseta) tams.push('Camiseta: <strong>' + t.camiseta + '</strong>');
+  if (t.calca) tams.push('Calça: <strong>' + t.calca + '</strong>');
+  if (t.vestido) tams.push('Vestido: <strong>' + t.vestido + '</strong>');
+  if (t.infantil) tams.push('Infantil: <strong>' + t.infantil + '</strong>');
+  if (tams.length) html += '<br>👕 ' + tams.join(' · ');
+
+  // Medidas
   var meds = Object.entries(c.medidas || {}).filter(function(e) { return e[1]; });
   if (meds.length) {
     var ml = {busto:'Busto',cintura:'Cintura',quadril:'Quadril',comprimento:'Compr.',ombro:'Ombro',manga:'Manga'};
@@ -223,6 +253,18 @@ function onClienteChange() {
       return ml[e[0]] + ': <strong>' + e[1] + 'cm</strong>';
     }).join(' · ');
   }
+
+  // Elástico
+  var cintura = parseFloat((c.medidas||{}).cintura || 0);
+  var tamanho = (c.tamanhos||{}).camiseta || c.tamanho || '';
+  var elResult = calcElasticoValor(cintura, tamanho);
+  if (elResult) {
+    var estilo = elResult.tipo === 'real'
+      ? 'background:#E3EEF8;color:#2A5F8A;border-radius:4px;padding:3px 8px;font-weight:500;display:inline-block;margin-top:4px'
+      : 'background:#FBF3E3;color:#7A5010;border-radius:4px;padding:3px 8px;font-weight:500;display:inline-block;margin-top:4px';
+    html += '<br><span style="' + estilo + '">📐 Elástico: ' + elResult.val + 'cm' + (elResult.tipo === 'estimativa' ? ' (estimativa)' : '') + '</span>';
+  }
+
   prev.innerHTML = html;
   prev.style.display = 'block';
 }
@@ -393,30 +435,49 @@ async function confirmarEntrega(salvarSobras) {
   var btn = document.getElementById('btn-sobras');
   setLoading(btn, true);
   try {
+    var p = pedidos.find(function(x) { return x.id === pedidoEntregandoId; });
+    var estrutura = p && p.modelo_id ? estruturas.find(function(e) { return e.id === p.modelo_id; }) : null;
+    var tecidos = estrutura ? (estrutura.tecidos || []) : [];
+    var {data: mats} = await db.from('materiais').select('*');
+
+    // ===== SAÍDA AUTOMÁTICA DE ESTOQUE =====
+    var saidasFeitas = 0;
+    for (var i = 0; i < tecidos.length; i++) {
+      var tec = tecidos[i];
+      var metros = parseFloat(tec.metros || tec.quantidade || 0);
+      if (!metros) continue;
+      var mat = (mats||[]).find(function(b) { return b.nome.toLowerCase() === tec.nome.toLowerCase(); });
+      if (mat) {
+        var novoEstoque = Math.max(0, parseFloat(mat.estoque || 0) - metros);
+        await db.from('materiais').update({estoque: parseFloat(novoEstoque.toFixed(2))}).eq('id', mat.id);
+        mat.estoque = novoEstoque;
+        saidasFeitas++;
+      }
+    }
+    if (saidasFeitas > 0) toast('📦 Estoque atualizado — ' + saidasFeitas + ' material(is) descontado(s)!');
+
+    // ===== SOBRAS =====
     if (salvarSobras) {
-      var p = pedidos.find(function(x) { return x.id === pedidoEntregandoId; });
-      var estrutura = p && p.modelo_id ? estruturas.find(function(e) { return e.id === p.modelo_id; }) : null;
-      var tecidos = estrutura ? (estrutura.tecidos || []) : [];
-      var {data: mats} = await db.from('materiais').select('*');
       var salvou = 0;
-      for (var i = 0; i < tecidos.length; i++) {
-        var larg = parseFloat(document.getElementById('sob-larg-' + i) ? document.getElementById('sob-larg-' + i).value : 0) || 0;
-        var comp = parseFloat(document.getElementById('sob-comp-' + i) ? document.getElementById('sob-comp-' + i).value : 0) || 0;
-        var obs = document.getElementById('sob-obs-' + i) ? document.getElementById('sob-obs-' + i).value.trim() : '';
+      for (var j = 0; j < tecidos.length; j++) {
+        var larg = parseFloat(document.getElementById('sob-larg-' + j) ? document.getElementById('sob-larg-' + j).value : 0) || 0;
+        var comp = parseFloat(document.getElementById('sob-comp-' + j) ? document.getElementById('sob-comp-' + j).value : 0) || 0;
+        var obs = document.getElementById('sob-obs-' + j) ? document.getElementById('sob-obs-' + j).value.trim() : '';
         if (!larg || !comp) continue;
-        var mat = (mats||[]).find(function(b) { return b.nome.toLowerCase() === tecidos[i].nome.toLowerCase(); });
-        if (mat) {
-          var sobras = [...(mat.sobras||[]), {
+        var mat2 = (mats||[]).find(function(b) { return b.nome.toLowerCase() === tecidos[j].nome.toLowerCase(); });
+        if (mat2) {
+          var sobras = [...(mat2.sobras||[]), {
             largura: larg, comprimento: comp,
             origem: 'Pedido: ' + p.cliente_nome + (p.modelo_nome ? ' · ' + p.modelo_nome : ''),
             obs: obs
           }];
-          await db.from('materiais').update({sobras: sobras}).eq('id', mat.id);
+          await db.from('materiais').update({sobras: sobras}).eq('id', mat2.id);
           salvou++;
         }
       }
-      if (salvou > 0) toast(salvou + ' sobra(s) registrada(s) na biblioteca!');
+      if (salvou > 0) toast('📐 ' + salvou + ' sobra(s) registrada(s) na biblioteca!');
     }
+
     await db.from('pedidos').update({status: 'entregue'}).eq('id', pedidoEntregandoId);
     var p2 = pedidos.find(function(x) { return x.id === pedidoEntregandoId; });
     if (p2) p2.status = 'entregue';
