@@ -1,4 +1,4 @@
-const CACHE_NAME = 'atelie-v4';
+const CACHE_NAME = 'atelie-v5';
 const ASSETS = [
   '/',
   '/index.html',
