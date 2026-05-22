@@ -916,7 +916,7 @@ function renderSelectCatsModelo(valorAtual) {
   }).join('');
 }
 
-function adicionarCatModelo() {
+async function adicionarCatModelo() {
   var input = document.getElementById('nova-cat-modelo');
   var nome = input.value.trim();
   if (!nome) return;

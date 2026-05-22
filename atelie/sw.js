@@ -1,4 +1,4 @@
-const CACHE_NAME = 'atelie-v1';
+const CACHE_NAME = 'atelie-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -8,7 +8,7 @@ const ASSETS = [
   '/pedidos.html',
   '/css/style.css',
   '/js/supabase.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
+  '/js/offline.js'
 ];
 
 // Instala e faz cache dos assets
@@ -21,7 +21,7 @@ self.addEventListener('install', function(e) {
   self.skipWaiting();
 });
 
-// Ativa e limpa caches antigos
+// Ativa e limpa caches antigos — SEMPRE
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
@@ -34,17 +34,20 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 
-// Intercepta requests
+// Intercepta requests — NETWORK FIRST para HTML, cache fallback
 self.addEventListener('fetch', function(e) {
   var url = e.request.url;
 
-  // Requisições ao Supabase — tenta online, se falhar retorna erro controlado
-  if (url.includes('supabase.co')) {
+  // Ignora URLs que nao sao http/https
+  if (!url.startsWith('http')) return;
+
+  // Supabase — sempre online, sem cache
+  if (url.includes('supabase.co') || url.includes('jsdelivr')) {
     e.respondWith(
       fetch(e.request).catch(function() {
         return new Response(JSON.stringify({
           error: 'offline',
-          message: 'Sem conexão. A operação será sincronizada quando a internet voltar.'
+          message: 'Sem conexao. A operacao sera sincronizada quando a internet voltar.'
         }), {
           status: 503,
           headers: {'Content-Type': 'application/json'}
@@ -54,11 +57,11 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // Assets do app — cache first
-  e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      return cached || fetch(e.request).then(function(response) {
-        // Atualiza cache com versão nova
+  // Arquivos HTML e CSS — NETWORK FIRST: tenta buscar versao nova, cai no cache se offline
+  if (url.includes('.html') || url.includes('.css') || url.includes('.js')) {
+    e.respondWith(
+      fetch(e.request).then(function(response) {
+        // Atualiza cache com versao nova
         if (response.ok) {
           var clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
@@ -66,9 +69,21 @@ self.addEventListener('fetch', function(e) {
           });
         }
         return response;
-      });
+      }).catch(function() {
+        // Offline: serve do cache
+        return caches.match(e.request).then(function(cached) {
+          return cached || caches.match('/index.html');
+        });
+      })
+    );
+    return;
+  }
+
+  // Outros assets — cache first
+  e.respondWith(
+    caches.match(e.request).then(function(cached) {
+      return cached || fetch(e.request);
     }).catch(function() {
-      // Fallback: retorna index.html para navegação offline
       return caches.match('/index.html');
     })
   );
@@ -82,7 +97,6 @@ self.addEventListener('sync', function(e) {
 });
 
 async function sincronizarFila() {
-  // Notifica os clients pra sincronizarem
   var clients = await self.clients.matchAll();
   clients.forEach(function(client) {
     client.postMessage({tipo: 'sincronizar'});
