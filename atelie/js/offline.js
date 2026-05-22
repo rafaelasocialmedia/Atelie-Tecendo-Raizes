@@ -145,13 +145,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Registra Service Worker
+// Service Worker desativado
+// Desregistra qualquer SW antigo que possa estar em cache
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-      console.log('Service Worker registrado:', reg.scope);
-    }).catch(function(err) {
-      console.log('Service Worker falhou:', err);
-    });
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(reg) { reg.unregister(); });
   });
 }
