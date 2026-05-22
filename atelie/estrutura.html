@@ -428,12 +428,12 @@ function addTecidoSelecionado() {
 function renderBiblioteca() {
   var sel = document.getElementById('tec-select');
   if (!sel) return;
-  var tecBib = biblioteca.filter(function(b) { return !b.categoria || b.categoria === 'Tecido' || b.categoria === 'Forro'; });
+  if (!biblioteca.length) return;
   var valorAtual = sel.value;
   sel.innerHTML = '<option value="">Selecione da biblioteca...</option>' +
-    tecBib.map(function(t) {
+    biblioteca.map(function(t) {
       return '<option value="' + t.id + '"' + (t.id == valorAtual ? ' selected' : '') + '>' +
-        t.nome + ' — R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m' +
+        t.nome + ' — R$ ' + parseFloat(t.preco||0).toFixed(2) + '/' + (t.unidade||'m') +
         (t.estoque ? ' (estoque: ' + t.estoque + ')' : '') +
       '</option>';
     }).join('');
@@ -917,6 +917,7 @@ function renderSelectCatsModelo(valorAtual) {
 }
 
 async function adicionarCatModelo() {
+  try {
   var input = document.getElementById('nova-cat-modelo');
   var nome = input.value.trim();
   if (!nome) return;
@@ -927,6 +928,7 @@ async function adicionarCatModelo() {
   await db.from('categorias').insert({tipo:'modelo', nome: nome});
   renderSelectCatsModelo(nome);
   input.value = '';
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 var fotoModeloBase64 = null;
@@ -986,12 +988,14 @@ async function carregarModelos() {
 }
 
 async function removerModelo(id) {
+  try {
   if (!confirm('Remover este modelo?')) return;
   var {error} = await db.from('estruturas').delete().eq('id', id);
   if (error) { toast('Erro: ' + error.message, 'erro'); return; }
   toast('Modelo removido!');
   modelosSalvos = modelosSalvos.filter(function(m) { return m.id !== id; });
   renderModelos();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 var CAT_ICON_MOD = {Saia:'👗',Vestido:'💃',Camiseta:'👕',Calca:'👖',Capa:'🧣',Outro:'📋'};

@@ -233,6 +233,7 @@ function renderSelectCategorias(valorAtual) {
 }
 
 async function adicionarCategoria() {
+  try {
   var input = document.getElementById('nova-categoria-input');
   var nome = input.value.trim();
   if (!nome) return;
@@ -243,6 +244,7 @@ async function adicionarCategoria() {
   input.value = '';
   await carregarCategorias();
   renderSelectCategorias(nome);
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 function renderFiltrosCategorias() {
@@ -338,6 +340,7 @@ async function salvarMaterial() {
 
 // ===== ESTOQUE RAPIDO =====
 async function ajustarEstoque(id, delta) {
+  try {
   var m = materiais.find(function(x) { return x.id === id; });
   if (!m) return;
   var novo = Math.max(0, parseFloat(m.estoque || 0) + delta);
@@ -345,15 +348,18 @@ async function ajustarEstoque(id, delta) {
   await db.from('materiais').update({estoque: novo}).eq('id', id);
   m.estoque = novo;
   renderMateriais();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 async function setEstoque(id, val) {
+  try {
   var novo = Math.max(0, parseFloat(val) || 0);
   novo = parseFloat(novo.toFixed(2));
   await db.from('materiais').update({estoque: novo}).eq('id', id);
   var m = materiais.find(function(x) { return x.id === id; });
   if (m) m.estoque = novo;
   atualizarResumo();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== SOBRAS =====
@@ -387,6 +393,7 @@ async function addSobra(id) {
 }
 
 async function removerSobra(matId, idx) {
+  try {
   var m = materiais.find(function(x) { return x.id === matId; });
   if (!m) return;
   var sobras = (m.sobras || []).filter(function(_,i) { return i !== idx; });
@@ -397,15 +404,18 @@ async function removerSobra(matId, idx) {
     var panel = document.getElementById('sobras-panel-' + matId);
     if (panel) panel.classList.add('aberto');
   }, 30);
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== REMOVER =====
 async function removerMaterial(id) {
+  try {
   if (!confirm('Remover este material?')) return;
   var {error} = await db.from('materiais').delete().eq('id', id);
   if (error) { toast('Erro: ' + error.message, 'erro'); return; }
   toast('Material removido!');
   await carregarMateriais();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== CARREGAR =====

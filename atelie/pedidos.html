@@ -393,6 +393,7 @@ async function salvarPedido() {
 
 // ===== MUDAR STATUS =====
 async function mudarStatus(id, status) {
+  try {
   if (status === 'entregue') {
     pedidoEntregandoId = id;
     abrirModalSobras(id);
@@ -404,6 +405,7 @@ async function mudarStatus(id, status) {
   if (p) p.status = status;
   renderPedidos();
   if (cardsAbertos[id]) { cardsAbertos[id] = true; renderPedidos(); }
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== SOBRAS =====
@@ -491,6 +493,7 @@ async function confirmarEntrega(salvarSobras) {
 
 // ===== PAGAMENTOS =====
 async function addPagamento(pedId) {
+  try {
   var forma = document.getElementById('forma-' + pedId).value;
   var valor = parseFloat(document.getElementById('vpag-' + pedId).value) || 0;
   var obs = document.getElementById('opag-' + pedId).value.trim();
@@ -505,9 +508,11 @@ async function addPagamento(pedId) {
   p.pagamentos = pagamentos; p.pag_status = pagStatus;
   cardsAbertos[pedId] = true;
   renderPedidos();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 async function removerPagamento(pedId, pagId) {
+  try {
   var p = pedidos.find(function(x) { return x.id === pedId; });
   if (!p) return;
   var pagamentos = (p.pagamentos||[]).filter(function(pg) { return pg.id !== pagId; });
@@ -517,6 +522,7 @@ async function removerPagamento(pedId, pagId) {
   p.pagamentos = pagamentos; p.pag_status = pagStatus;
   cardsAbertos[pedId] = true;
   renderPedidos();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== TOGGLE CARD =====
@@ -527,11 +533,13 @@ function toggleCard(id) {
 
 // ===== REMOVER =====
 async function removerPedido(id) {
+  try {
   if (!confirm('Remover este pedido?')) return;
   await db.from('pedidos').delete().eq('id', id);
   pedidos = pedidos.filter(function(x) { return x.id !== id; });
   toast('Pedido removido!');
   renderPedidos();
+  } catch(e) { toast('Erro: ' + e.message, 'erro'); }
 }
 
 // ===== CARREGAR =====
