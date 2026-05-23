@@ -418,10 +418,11 @@ function addTecidoSelecionado() {
   var t = biblioteca.find(function(b) { return b.id === id; });
   if (!t) return;
   if (tecidos.find(function(x) { return x.nome === t.nome; })) { alert('Este tecido ja foi adicionado.'); return; }
-  tecidos.push({id: Date.now(), nome: t.nome, preco: parseFloat(t.preco)||0, largura: parseFloat(t.largura)||150, bibId: t.id, cor: tecCores[tecidos.length % tecCores.length]});
+  var novoId = Date.now();
+  tecidos.push({id: novoId, nome: t.nome, preco: parseFloat(t.preco)||0, largura: parseFloat(t.largura)||150, bibId: t.id, cor: tecCores[tecidos.length % tecCores.length]});
   document.getElementById('tec-select').value = '';
   document.getElementById('tec-preview').style.display = 'none';
-  renderTecidos();
+  renderTecidos(novoId);
   recalc();
 }
 
@@ -445,7 +446,7 @@ function removerTecido(id) {
   recalc();
 }
 
-function renderTecidos() {
+function renderTecidos(forcarSelecionado) {
   var div = document.getElementById('tecidos-lista');
   var sel = document.getElementById('p-tecido');
   if (!tecidos.length) {
@@ -462,10 +463,10 @@ function renderTecidos() {
       '<button class="btn-x-sm" onclick="removerTecido(' + t.id + ')">×</button>' +
     '</div>';
   }).join('');
-  var tecAtual = sel.value;
+  var tecAtual = forcarSelecionado ? String(forcarSelecionado) : sel.value;
   sel.innerHTML = '<option value="">Selecione o tecido...</option>' +
     tecidos.map(function(t) {
-      return '<option value="' + t.id + '"' + (String(t.id) === String(tecAtual) ? ' selected' : '') + '>' + t.nome + ' (R$ ' + t.preco.toFixed(2) + '/m)</option>';
+      return '<option value="' + t.id + '"' + (String(t.id) === tecAtual ? ' selected' : '') + '>' + t.nome + ' (R$ ' + t.preco.toFixed(2) + '/m)</option>';
     }).join('');
   if (!sel.value && tecidos.length === 1) {
     sel.value = String(tecidos[0].id);
