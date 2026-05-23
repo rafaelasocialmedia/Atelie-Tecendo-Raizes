@@ -463,15 +463,12 @@ function renderTecidos() {
     '</div>';
   }).join('');
   var tecAtual = sel.value;
-  // Se não tem tecido selecionado e só tem um, seleciona automaticamente
-  if (!tecAtual && tecidos.length === 1) tecAtual = tecidos[0].id;
   sel.innerHTML = '<option value="">Selecione o tecido...</option>' +
     tecidos.map(function(t) {
-      return '<option value="' + t.id + '"' + (t.id == tecAtual ? ' selected' : '') + '>' + t.nome + ' (R$ ' + t.preco.toFixed(2) + '/m)</option>';
+      return '<option value="' + t.id + '"' + (String(t.id) === String(tecAtual) ? ' selected' : '') + '>' + t.nome + ' (R$ ' + t.preco.toFixed(2) + '/m)</option>';
     }).join('');
-  // Dispara recalc se selecionou automaticamente
   if (!sel.value && tecidos.length === 1) {
-    sel.value = tecidos[0].id;
+    sel.value = String(tecidos[0].id);
     recalc();
   }
 }
