@@ -172,8 +172,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
+
+<script type="module" src="js/firebase.js"></script>
 <script>
 let materiais = [];
 let categorias = [];
@@ -533,10 +533,14 @@ function renderMateriais() {
   }).join('');
 }
 
-carregarCategorias();
+async function _initFirebase() {
+  await new Promise(r => { const t = setInterval(() => { if(window._firebaseReady && window.db){clearInterval(t);r();} }, 50); });
+  carregarCategorias();
 carregarMateriais();
+}
+_initFirebase();
 </script>
-<script src="/js/offline.js"></script>
+<script src="js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
 
 <style>

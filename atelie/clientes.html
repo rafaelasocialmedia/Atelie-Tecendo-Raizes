@@ -259,8 +259,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
+
+<script type="module" src="js/firebase.js"></script>
 <script>
 const TAMANHOS_PADRAO = {
   '2':42,'4':46,'6':50,'8':54,'10':58,'12':62,
@@ -510,10 +510,14 @@ function renderClientes() {
   }).join('');
 }
 
-selPerfil('feminino', document.getElementById('pb-feminino'));
+async function _initFirebase() {
+  await new Promise(r => { const t = setInterval(() => { if(window._firebaseReady && window.db){clearInterval(t);r();} }, 50); });
+  selPerfil('feminino', document.getElementById('pb-feminino'));
 carregarClientes();
+}
+_initFirebase();
 </script>
-<script src="/js/offline.js"></script>
+<script src="js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
 
 <style>

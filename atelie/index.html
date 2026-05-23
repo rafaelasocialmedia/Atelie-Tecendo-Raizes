@@ -70,8 +70,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
+
+<script type="module" src="js/firebase.js"></script>
 <script>
 async function carregarContagens() {
   const tabelas = ['clientes','materiais','estruturas','pedidos'];
@@ -92,9 +92,14 @@ async function carregarContagens() {
     }
   }
 }
-carregarContagens();
+async function init() {
+  // Espera firebase carregar
+  await new Promise(r => { const t = setInterval(() => { if(window._firebaseReady && window.db){clearInterval(t);r();} }, 50); });
+  carregarContagens();
+}
+init();
 </script>
-<script src="/js/offline.js"></script>
+<script src="js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
 
 <style>

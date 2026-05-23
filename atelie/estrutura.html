@@ -1041,6 +1041,7 @@ function renderModelos() {
 
 // ===== INIT =====
 (async function() {
+  await new Promise(r => { const t = setInterval(() => { if(window._firebaseReady && window.db){clearInterval(t);r();} }, 50); });
   await carregarBiblioteca();
   await carregarCatsModelo();
   await carregarModelos();
@@ -1049,9 +1050,9 @@ function renderModelos() {
   renderAviamentos();
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="/js/offline.js"></script>
+
+<script type="module" src="js/firebase.js"></script>
+<script src="js/offline.js"></script>
 <script>atualizarBannerOffline();</script>
 
 <style>
