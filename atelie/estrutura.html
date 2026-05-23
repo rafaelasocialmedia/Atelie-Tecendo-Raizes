@@ -403,19 +403,19 @@ async function carregarBiblioteca() {
 
 // ===== TECIDOS =====
 function onTecSelectChange() {
-  var id = parseInt(document.getElementById('tec-select').value) || 0;
+  var id = document.getElementById('tec-select').value;
   var prev = document.getElementById('tec-preview');
   if (!id) { prev.style.display = 'none'; return; }
-  var t = biblioteca.find(function(b) { return b.id === id; });
+  var t = biblioteca.find(function(b) { return String(b.id) === String(id); });
   if (!t) { prev.style.display = 'none'; return; }
   prev.textContent = t.nome + ' · R$ ' + parseFloat(t.preco||0).toFixed(2) + '/m · estoque: ' + (t.estoque||0) + ' ' + (t.unidade||'m');
   prev.style.display = 'block';
 }
 
 function addTecidoSelecionado() {
-  var id = parseInt(document.getElementById('tec-select').value) || 0;
+  var id = document.getElementById('tec-select').value;
   if (!id) { alert('Selecione um tecido da biblioteca.'); return; }
-  var t = biblioteca.find(function(b) { return b.id === id; });
+  var t = biblioteca.find(function(b) { return String(b.id) === String(id); });
   if (!t) return;
   if (tecidos.find(function(x) { return x.nome === t.nome; })) { alert('Este tecido ja foi adicionado.'); return; }
   var novoId = Date.now();
@@ -533,8 +533,8 @@ function recalc() {
   var compAnterior = getCompAnterior();
   var compNecessario = parseFloat((compAnterior * fz).toFixed(1));
 
-  var tecId = parseInt(document.getElementById('p-tecido').value) || 0;
-  var tec = tecidos.find(function(t) { return t.id === tecId; });
+  var tecId = document.getElementById('p-tecido').value;
+  var tec = tecidos.find(function(t) { return String(t.id) === String(tecId); });
   var largura = tec ? tec.largura : 150;
   var preco = tec ? tec.preco : 0;
 
@@ -625,7 +625,7 @@ function addPeca() {
   var altVis = parseFloat(document.getElementById('p-altura-vis').value) || 0;
   var margem = parseFloat(document.getElementById('p-margem').value) || 0;
   var altura = parseFloat((altVis + margem * 2).toFixed(1));
-  var tecId = parseInt(document.getElementById('p-tecido').value) || 0;
+  var tecId = document.getElementById('p-tecido').value;
   var posicao = document.getElementById('p-posicao').value.trim() || '—';
   var preview = document.getElementById('preview');
 
