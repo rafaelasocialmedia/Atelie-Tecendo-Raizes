@@ -785,6 +785,6 @@ function renderPedidos() {
 carregarPedidos();
 </script>
 <script src="js/offline.js"></script>
-<script>atualizarBannerOffline();</script>
+<script>window.addEventListener('load', function(){ if(window.atualizarBannerOffline) atualizarBannerOffline(); });</script>
 </body>
 </html>

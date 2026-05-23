@@ -541,7 +541,7 @@ carregarMateriais();
 _initFirebase();
 </script>
 <script src="js/offline.js"></script>
-<script>atualizarBannerOffline();</script>
+<script>window.addEventListener('load', function(){ if(window.atualizarBannerOffline) atualizarBannerOffline(); });</script>
 
 <style>
 .btn-ajuda{position:fixed;bottom:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;background:#5C4033;color:#FAF7F2;border:none;font-size:1.2rem;cursor:pointer;box-shadow:0 4px 12px rgba(44,24,16,0.3);z-index:300;transition:all 0.2s;display:flex;align-items:center;justify-content:center;font-family:sans-serif;}
