@@ -204,6 +204,11 @@
             <label class="lbl">Custo do tecido (R$/m)</label>
             <input type="number" id="m-preco-tecido" min="0" step="0.01" placeholder="0,00" oninput="recalcular()"/>
           </div>
+          <div class="form-group">
+            <label class="lbl">Roda total desejada (m)</label>
+            <input type="number" id="m-roda-total" value="12" min="1" step="0.5" oninput="recalcular()"/>
+            <div class="lbl-hint" style="font-size:10px;color:var(--texto-muted);margin-top:2px">Metragem final da última faixa. Ex: 12m, 15m, 24m</div>
+          </div>
         </div>
         <div>
           <div class="form-group">
@@ -398,8 +403,6 @@ function renderFaixas() {
   if (!faixas.length) { div.innerHTML = ''; return; }
   div.innerHTML = faixas.map(function(f, i) {
     var altCorte = parseFloat(f.alturaVisivel || 0) + parseFloat(f.marginaCima || 0) + parseFloat(f.barra || 0);
-    var franz = f.franzido === 0 ? (f.franzidoCustom || 1) : (f.franzido || 1);
-    var rodaM = (parseFloat(document.getElementById('m-comp-tecido').value || 6) * f.nCortes * franz).toFixed(1);
     var cor = CORES_FAIXA[i % CORES_FAIXA.length];
 
     return '<div class="faixa-card" id="fc-' + f.id + '">' +
@@ -407,7 +410,7 @@ function renderFaixas() {
         '<div class="faixa-num" style="background:' + cor + '">' + (i+1) + '</div>' +
         '<input type="text" value="' + f.nome + '" style="flex:1;border:none;background:none;font-size:13px;font-weight:500;color:var(--marrom);padding:0 4px;font-family:var(--sans)" oninput="faixas['+i+'].nome=this.value" />' +
         '<span class="faixa-metros-badge">' + altCorte.toFixed(1) + 'cm corte</span>' +
-        '<span class="faixa-roda-badge" style="margin-left:4px">🔄 ' + rodaM + 'm roda</span>' +
+        '<span class="faixa-roda-badge" style="margin-left:4px">calculando...</span>' +
         '<button onclick="removerFaixa(' + f.id + ')" class="btn-x-sm" style="margin-left:6px;background:none;border:none;color:var(--texto-muted);cursor:pointer;font-size:16px">×</button>' +
       '</div>' +
       '<div class="faixa-card-body">' +
@@ -423,24 +426,6 @@ function renderFaixas() {
           '<div class="form-group" style="margin-bottom:0">' +
             '<label class="lbl">Barra (cm)</label>' +
             '<input type="number" value="' + f.barra + '" min="0" step="0.5" oninput="faixas['+i+'].barra=parseFloat(this.value)||0;recalcular()"/>' +
-          '</div>' +
-          '<div class="form-group" style="margin-bottom:0">' +
-            '<label class="lbl">Nº de cortes</label>' +
-            '<input type="number" value="' + f.nCortes + '" min="1" step="1" oninput="faixas['+i+'].nCortes=parseInt(this.value)||1;recalcular()"/>' +
-          '</div>' +
-        '</div>' +
-        '<div style="margin-top:8px">' +
-          '<div class="lbl" style="margin-bottom:5px">Franzido</div>' +
-          '<div class="fz-grid">' +
-            [[1,'1:1','Sem'],[1.5,'1,5:1','Leve'],[2,'2:1','Médio'],[2.5,'2,5:1','Cheio'],[3,'3:1','Muito'],[0,'?:1','Custom']].map(function(fz) {
-              return '<button type="button" class="fz-btn' + (f.franzido === fz[0] ? ' sel' : '') + '" data-fid="' + f.id + '" onclick="setFranzido(' + f.id + ',' + fz[0] + ',this)">' +
-                '<span class="fz-val">' + fz[1] + '</span>' +
-                '<span class="fz-desc">' + fz[2] + '</span>' +
-              '</button>';
-            }).join('') +
-          '</div>' +
-          '<div class="fz-custom' + (f.franzido === 0 ? ' vis' : '') + '" id="fz-custom-' + f.id + '">' +
-            '<input type="number" value="' + (f.franzidoCustom || '') + '" placeholder="Ex: 1.8" min="1" step="0.1" oninput="faixas['+i+'].franzidoCustom=parseFloat(this.value)||1;recalcular()"/>' +
           '</div>' +
         '</div>' +
         '<div class="form-group" style="margin-top:8px;margin-bottom:0">' +
@@ -491,17 +476,40 @@ window.recalcular = function() {
   var compTecido = parseFloat(document.getElementById('m-comp-tecido').value) || 6;
   var precoTecido = parseFloat(document.getElementById('m-preco-tecido').value) || 0;
   var alturaDesejada = getAlturaTotal();
+  var rodaTotal = parseFloat(document.getElementById('m-roda-total').value) || 12;
 
   // Altura usada na largura do tecido
   var larguraUsada = COS_ALTURA;
   var altVisTotal = COS_VISIVEL;
   var infos = [{nome: 'Cós', altura: COS_ALTURA, cor: '#5C4033'}];
 
+  // CALCULAR RODA DE CADA FAIXA
+  // Progressão: roda de cada faixa = (rodaTotal / nFaixas) * índice
+  var nFaixas = faixas.length;
+  var rodaFaixas = []; // roda de tecido a cortar de cada faixa
+
+  if (nFaixas > 0) {
+    var passo = rodaTotal / nFaixas;
+    for (var i = 0; i < nFaixas; i++) {
+      rodaFaixas.push(parseFloat((passo * (i + 1)).toFixed(2)));
+    }
+  }
+
   faixas.forEach(function(f, i) {
     var altCorte = parseFloat(f.alturaVisivel || 0) + parseFloat(f.marginaCima || 0) + parseFloat(f.barra || 0);
     larguraUsada += altCorte;
     altVisTotal += parseFloat(f.alturaVisivel || 0);
     infos.push({nome: f.nome || ('Faixa ' + (i+1)), altura: altCorte, cor: CORES_FAIXA[i % CORES_FAIXA.length]});
+
+    // Calcular franzido e nCortes automaticamente
+    var rodaAnterior = i === 0 ? 1.5 : rodaFaixas[i - 1];
+    var rodaAtual = rodaFaixas[i];
+    var franzido = parseFloat((rodaAtual / rodaAnterior).toFixed(2));
+    var nCortes = Math.ceil(rodaAtual / compTecido);
+
+    f._rodaCalculada = rodaAtual;
+    f._franzidoCalculado = franzido;
+    f._nCortesCalculado = nCortes;
   });
 
   var sobra = LARGURA_TECIDO - larguraUsada;
@@ -539,9 +547,20 @@ window.recalcular = function() {
     avisoDiv.classList.add('vis');
   }
 
+  // Atualizar badges das faixas
+  faixas.forEach(function(f, i) {
+    var headerEl = document.querySelector('#fc-' + f.id + ' .faixa-card-header');
+    if (headerEl) {
+      var metrosBadge = headerEl.querySelector('.faixa-metros-badge');
+      var rodaBadge = headerEl.querySelector('.faixa-roda-badge');
+      var altCorte = parseFloat(f.alturaVisivel || 0) + parseFloat(f.marginaCima || 0) + parseFloat(f.barra || 0);
+      if (metrosBadge) metrosBadge.textContent = altCorte.toFixed(1) + 'cm corte';
+      if (rodaBadge) rodaBadge.textContent = '🔄 ' + f._rodaCalculada.toFixed(1) + 'm roda | franzido ' + f._franzidoCalculado.toFixed(2) + ':1 | ' + f._nCortesCalculado + ' corte(s)';
+    }
+  });
+
   // VISUAL DO TECIDO
   var visDiv = document.getElementById('tecido-vis-strips');
-  var compMostrado = compTecido;
   document.getElementById('vis-comp').textContent = compTecido + 'm';
   var totalBar = larguraUsada > LARGURA_TECIDO ? larguraUsada : LARGURA_TECIDO;
 
@@ -563,12 +582,12 @@ window.recalcular = function() {
   var custoTotal = custoTecido + custoMats;
 
   // RESUMO
-  var resumoLinhas = '';
+  var resumoLinhas = '<div class="resumo-linha"><span class="resumo-label">Cós</span><span>1,5m fixo</span></div>';
   faixas.forEach(function(f, i) {
-    var franz = f.franzido === 0 ? (f.franzidoCustom || 1) : (f.franzido || 1);
-    var roda = (compTecido * f.nCortes * franz).toFixed(1);
-    resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">' + (f.nome || 'Faixa '+(i+1)) + '</span><span>' + f.nCortes + ' corte(s) → roda ' + roda + 'm</span></div>';
+    resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">' + (f.nome || 'Faixa '+(i+1)) + '</span><span>' +
+      f._rodaCalculada.toFixed(1) + 'm roda | franzido ' + f._franzidoCalculado.toFixed(2) + ':1 | ' + f._nCortesCalculado + ' corte(s)</span></div>';
   });
+  resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">Roda final</span><span>' + rodaTotal + 'm</span></div>';
   resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">Largura usada</span><span>' + larguraUsada.toFixed(1) + 'cm / 150cm</span></div>';
   if (sobra > 0) resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">Sobra</span><span>' + sobra.toFixed(1) + 'cm × ' + compTecido + 'm</span></div>';
   if (custoTecido > 0) resumoLinhas += '<div class="resumo-linha"><span class="resumo-label">Custo tecido</span><span>R$ ' + custoTecido.toFixed(2).replace('.',',') + '</span></div>';
